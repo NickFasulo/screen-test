@@ -39,6 +39,15 @@
       .score-big { font-size: 34px; font-weight: 700; color: #c9a227; }
       .center { text-align: center; }
       .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #232b36; font-size: 14px; }
+      .stage { position: relative; }
+      .qcard { animation: qin 0.3s ease both; }
+      .qcard.exit {
+        position: absolute; top: 0; left: 0; right: 0;
+        animation: qout 0.22s ease both;
+      }
+      @keyframes qin { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+      @keyframes qout { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-28px); } }
+      .next { margin-top: 6px; }
       .footer { color: #64748b; font-size: 11px; text-align: center; margin-top: 8px; }
       .footer a { color: #94a3b8; }
     </style>

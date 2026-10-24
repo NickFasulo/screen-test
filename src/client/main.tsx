@@ -29,6 +29,53 @@ const api = async <T,>(path: string, body?: unknown): Promise<T> => {
   return data as T
 }
 
+function QuestionCard({
+  q,
+  picked,
+  revealed,
+  isLast,
+  exiting,
+  onPick,
+  onNext
+}: {
+  q: Question
+  picked: number | undefined
+  revealed: { answerIndex: number; link: string } | undefined
+  isLast: boolean
+  exiting: boolean
+  onPick: (choice: number) => void
+  onNext: () => void
+}) {
+  return (
+    <div className={`card qcard${exiting ? ' exit' : ''}`}>
+      <div className='prompt'>{q.prompt}</div>
+      {q.options.map((opt, i) => {
+        let cls = 'opt'
+        if (picked !== undefined && revealed) {
+          if (i === revealed.answerIndex) cls += ' correct'
+          else if (i === picked) cls += ' wrong'
+          else cls += ' dim'
+        }
+        return (
+          <button key={i} className={cls} disabled={picked !== undefined} onClick={() => onPick(i)}>
+            {opt}
+          </button>
+        )
+      })}
+      {revealed && (
+        <a className='link' href={revealed.link} target='_blank' rel='noreferrer'>
+          More on this title →
+        </a>
+      )}
+      {picked !== undefined && (
+        <button className='primary next' onClick={onNext}>
+          {isLast ? 'See results →' : 'Next →'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Quiz({ state }: { state: State }) {
   const questions = state.questions || []
   const [picks, setPicks] = useState<Record<string, number>>(() => {
@@ -36,16 +83,22 @@ function Quiz({ state }: { state: State }) {
     for (const [k, v] of Object.entries(state.picks || {})) init[k] = Number(v)
     return init
   })
+  const [index, setIndex] = useState(() => {
+    const idx = questions.findIndex((q) => state.picks?.[q.id] === undefined)
+    return idx === -1 ? questions.length : idx
+  })
+  const [leaving, setLeaving] = useState<Question | null>(null)
   const [answers, setAnswers] = useState<Record<string, { answerIndex: number; link: string }>>({})
   const [score, setScore] = useState(state.score || 0)
   const [streak, setStreak] = useState(state.streak || 0)
   const [board, setBoard] = useState<{ userId: string; score: number }[] | null>(null)
 
-  const current = questions.find((q) => picks[q.id] === undefined)
+  const current = index < questions.length ? questions[index] : undefined
   const done = !current && questions.length > 0
   const correctCount = questions.filter((q) => answers[q.id]?.answerIndex === picks[q.id]).length
 
   const answer = async (q: Question, choice: number) => {
+    if (picks[q.id] !== undefined) return
     setPicks((p) => ({ ...p, [q.id]: choice }))
     try {
       const res = await api<{ correct: boolean; answerIndex: number; link: string; score: number; streak: number }>(
@@ -60,6 +113,13 @@ function Quiz({ state }: { state: State }) {
     }
   }
 
+  const advance = () => {
+    if (!current) return
+    setLeaving(current)
+    setIndex((i) => i + 1)
+    window.setTimeout(() => setLeaving(null), 240)
+  }
+
   if (!questions.length) {
     return <div className='card'>No quiz data — check back soon.</div>
   }
@@ -68,45 +128,38 @@ function Quiz({ state }: { state: State }) {
     <>
       <div className='meta'>
         <span>
-          Question {Math.min(questions.length, Object.keys(picks).length + 1)} / {questions.length}
+          Question {Math.min(index + 1, questions.length)} / {questions.length}
         </span>
         <span>
           Score {score}
           {streak > 1 ? ` · ${streak}-set streak` : ''}
         </span>
       </div>
-      {questions.map((q) => {
-        const picked = picks[q.id]
-        const revealed = answers[q.id]
-        return (
-          <div className='card' key={q.id}>
-            <div className='prompt'>{q.prompt}</div>
-            {q.options.map((opt, i) => {
-              let cls = 'opt'
-              if (picked !== undefined && revealed) {
-                if (i === revealed.answerIndex) cls += ' correct'
-                else if (i === picked) cls += ' wrong'
-                else cls += ' dim'
-              }
-              return (
-                <button
-                  key={i}
-                  className={cls}
-                  disabled={picked !== undefined}
-                  onClick={() => answer(q, i)}
-                >
-                  {opt}
-                </button>
-              )
-            })}
-            {revealed && (
-              <a className='link' href={revealed.link} target='_blank' rel='noreferrer'>
-                More on this title →
-              </a>
-            )}
-          </div>
-        )
-      })}
+      <div className='stage'>
+        {leaving && (
+          <QuestionCard
+            q={leaving}
+            picked={picks[leaving.id]}
+            revealed={answers[leaving.id]}
+            isLast
+            exiting
+            onPick={() => {}}
+            onNext={() => {}}
+          />
+        )}
+        {current && (
+          <QuestionCard
+            key={current.id}
+            q={current}
+            picked={picks[current.id]}
+            revealed={answers[current.id]}
+            isLast={index === questions.length - 1}
+            exiting={false}
+            onPick={(choice) => answer(current, choice)}
+            onNext={advance}
+          />
+        )}
+      </div>
       {done && (
         <div className='card center'>
           <div className='brand'>Cut. That's a wrap.</div>
@@ -148,7 +201,7 @@ function App() {
 
   return (
     <>
-      <div className='brand'>Screen Test · galaxymovies.app</div>
+      <div className='brand'>Screen Test</div>
       <h1>{state.mode === 'spotlight' ? state.theme || 'Weekly spotlight' : 'Daily film & TV trivia'}</h1>
       <div className='sub'>
         {state.mode === 'spotlight'
