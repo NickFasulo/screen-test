@@ -102,10 +102,13 @@ function shuffle<T>(rng: () => number, arr: T[]): T[] {
 
 const seedFrom = (s: string) => [...s].reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 7)
 
-async function fetchList(path: string): Promise<TmdbListItem[]> {
-  const data = await tmdbFetch<TmdbPaged<TmdbListItem>>(path)
+async function fetchList(path: string, page = 1): Promise<TmdbListItem[]> {
+  const data = await tmdbFetch<TmdbPaged<TmdbListItem>>(path, { page })
   return data?.results || []
 }
+
+const fetchPages = (path: string, pages: number) =>
+  Promise.all(Array.from({ length: pages }, (_, i) => fetchList(path, i + 1))).then((rs) => rs.flat())
 
 // Weekly candidate sample: trending keeps the pool current, popular/top_rated
 // keep it recognizable. The week seed rotates which borderline titles make the
@@ -114,10 +117,10 @@ async function collectCandidates(): Promise<{ id: number; type: 'movie' | 'tv' }
   const [trendM, trendT, popM, popT, topM, topT] = await Promise.all([
     fetchList('/trending/movie/week'),
     fetchList('/trending/tv/week'),
-    fetchList('/movie/popular'),
-    fetchList('/tv/popular'),
-    fetchList('/movie/top_rated'),
-    fetchList('/tv/top_rated')
+    fetchPages('/movie/popular', 3),
+    fetchPages('/tv/popular', 3),
+    fetchPages('/movie/top_rated', 2),
+    fetchPages('/tv/top_rated', 2)
   ])
   const seen = new Map<string, { id: number; type: 'movie' | 'tv'; votes: number }>()
   for (const [items, type] of [

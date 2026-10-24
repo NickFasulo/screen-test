@@ -15,15 +15,24 @@
     "externalEndpoints": {
       "quiz-now": {
         "endpoint": "/external/quiz-now",
-        "scopes": ["install", "global"]
+        "scopes": [
+          "install",
+          "global"
+        ]
       },
       "spotlight-now": {
         "endpoint": "/external/spotlight-now",
-        "scopes": ["install", "global"]
+        "scopes": [
+          "install",
+          "global"
+        ]
       },
       "pool-refresh-now": {
         "endpoint": "/external/pool-refresh-now",
-        "scopes": ["install", "global"]
+        "scopes": [
+          "install",
+          "global"
+        ]
       }
     }
   },
@@ -32,7 +41,9 @@
     "redis": true,
     "http": {
       "enable": true,
-      "domains": ["api.themoviedb.org"]
+      "domains": [
+        "api.themoviedb.org"
+      ]
     }
   },
   "settings": {
@@ -50,15 +61,40 @@
         "label": "Quiz post days",
         "helpText": "Days of the week (UTC) the daily quiz post is created.",
         "options": [
-          { "label": "Monday", "value": "1" },
-          { "label": "Tuesday", "value": "2" },
-          { "label": "Wednesday", "value": "3" },
-          { "label": "Thursday", "value": "4" },
-          { "label": "Friday", "value": "5" },
-          { "label": "Saturday", "value": "6" },
-          { "label": "Sunday", "value": "0" }
+          {
+            "label": "Monday",
+            "value": "1"
+          },
+          {
+            "label": "Tuesday",
+            "value": "2"
+          },
+          {
+            "label": "Wednesday",
+            "value": "3"
+          },
+          {
+            "label": "Thursday",
+            "value": "4"
+          },
+          {
+            "label": "Friday",
+            "value": "5"
+          },
+          {
+            "label": "Saturday",
+            "value": "6"
+          },
+          {
+            "label": "Sunday",
+            "value": "0"
+          }
         ],
-        "defaultValue": ["1", "3", "5"]
+        "defaultValue": [
+          "1",
+          "3",
+          "5"
+        ]
       }
     }
   },

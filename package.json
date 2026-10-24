@@ -1,7 +1,7 @@
 {
   "name": "screen-test",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.0",
   "scripts": {
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",

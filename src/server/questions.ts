@@ -59,8 +59,14 @@ function make(ctx: Ctx, prompt: string, answer: string, distractors: string[], l
       uniq.push(d)
     }
   }
-  if (uniq.length < 3) return null
-  const options = shuffle(ctx.rng, [answer, ...uniq.slice(0, 3)])
+  // Prefer distractors not already used in this quiz; shuffled so the same
+  // insertion-order names don't recur as options in every question.
+  const fresh = uniq.filter((d) => !ctx.used.has(`d${norm(d)}`))
+  const pool = fresh.length >= 3 ? fresh : uniq
+  if (pool.length < 3) return null
+  const picks = shuffle(ctx.rng, pool).slice(0, 3)
+  for (const d of picks) ctx.used.add(`d${norm(d)}`)
+  const options = shuffle(ctx.rng, [answer, ...picks])
   return { id: `q${ctx.out.length + 1}`, prompt, options, answerIndex: options.indexOf(answer), link }
 }
 
@@ -135,7 +141,17 @@ const filmographyQ: Builder = (ctx, candidates) => {
 }
 
 const pairQ: Builder = (ctx, candidates) => {
-  const t = firstFree(ctx, candidates, (x) => x.cast.length >= 2)
+  // Prefer pairs where both leads have other pool credits — two recognizably
+  // busy actors makes a fairer question than one famous and one obscure lead.
+  const t =
+    firstFree(
+      ctx,
+      candidates,
+      (x) =>
+        x.cast.length >= 2 &&
+        (ctx.pool.people[x.cast[0].name]?.actedIn.length ?? 0) >= 2 &&
+        (ctx.pool.people[x.cast[1].name]?.actedIn.length ?? 0) >= 2
+    ) || firstFree(ctx, candidates, (x) => x.cast.length >= 2)
   if (!t) return null
   const [a, b] = [t.cast[0].name, t.cast[1].name]
   const distractors = candidates
