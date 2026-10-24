@@ -37,7 +37,8 @@ function QuestionCard({
   isLast,
   exiting,
   onPick,
-  onNext
+  onNext,
+  onExitDone
 }: {
   q: Question
   picked: number | undefined
@@ -46,9 +47,10 @@ function QuestionCard({
   exiting: boolean
   onPick: (choice: number) => void
   onNext: () => void
+  onExitDone?: () => void
 }) {
   return (
-    <div className={`card qcard${exiting ? ' exit' : ''}`}>
+    <div className={`card qcard${exiting ? ' exit' : ''}`} onAnimationEnd={onExitDone}>
       <div className='prompt'>{q.prompt}</div>
       {q.options.map((opt, i) => {
         let cls = 'opt'
@@ -122,10 +124,10 @@ function Quiz({ state }: { state: State }) {
   }
 
   const advance = () => {
-    if (!current) return
+    if (!current || leaving) return
     setLeaving(current)
     setIndex((i) => i + 1)
-    window.setTimeout(() => setLeaving(null), 240)
+    window.setTimeout(() => setLeaving(null), 400)
   }
 
   if (!questions.length) {
@@ -153,6 +155,7 @@ function Quiz({ state }: { state: State }) {
             exiting
             onPick={() => {}}
             onNext={() => {}}
+            onExitDone={() => setLeaving(null)}
           />
         )}
         {current && (
