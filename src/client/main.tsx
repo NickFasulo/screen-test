@@ -1,4 +1,4 @@
-import { navigateTo } from '@devvit/web/client'
+import { getWebViewMode, navigateTo, requestExpandedMode } from '@devvit/web/client'
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -202,6 +202,7 @@ function Quiz({ state }: { state: State }) {
 function App() {
   const [state, setState] = useState<State | null>(null)
   const [err, setErr] = useState('')
+  const [viewMode] = useState(() => getWebViewMode())
 
   useEffect(() => {
     api<State>('/api/state').then(setState).catch((e) => setErr(String(e)))
@@ -212,7 +213,23 @@ function App() {
 
   return (
     <>
-      <div className='brand'>Screen Test</div>
+      <div className='top'>
+        <div className='brand'>Screen Test</div>
+        {viewMode === 'inline' && (
+          <button
+            className='expand'
+            onClick={(e) => {
+              try {
+                requestExpandedMode(e.nativeEvent, 'default')
+              } catch {
+                // already expanded
+              }
+            }}
+          >
+            ⤢ Fullscreen
+          </button>
+        )}
+      </div>
       <h1>{state.mode === 'spotlight' ? state.theme || 'Weekly spotlight' : 'Daily film & TV trivia'}</h1>
       <div className='sub'>
         {state.mode === 'spotlight'

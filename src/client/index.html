@@ -13,16 +13,22 @@
         min-height: 100vh;
         touch-action: manipulation;
       }
-      #root { max-width: 560px; margin: 0 auto; padding: 24px 16px 48px; }
-      .brand { color: #c9a227; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
-      h1 { font-size: 22px; margin-bottom: 4px; }
-      .sub { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
-      .card { background: #1a2028; border: 1px solid #2a3442; border-radius: 12px; padding: 18px; margin-bottom: 14px; }
-      .prompt { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+      #root { max-width: 560px; margin: 0 auto; padding: 12px 14px 18px; }
+      .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+      .brand { color: #c9a227; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+      .expand {
+        background: none; border: 1px solid #2f3a49; color: #94a3b8;
+        border-radius: 8px; padding: 3px 10px; font-size: 11px; cursor: pointer;
+      }
+      .expand:hover { border-color: #c9a227; color: #c9a227; }
+      h1 { font-size: 19px; margin-bottom: 3px; }
+      .sub { color: #94a3b8; font-size: 12.5px; margin-bottom: 12px; }
+      .card { background: #1a2028; border: 1px solid #2a3442; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+      .prompt { font-size: 15px; font-weight: 600; margin-bottom: 10px; line-height: 1.35; }
       .opt {
         display: block; width: 100%; text-align: left; cursor: pointer;
         background: #232b36; color: #e2e8f0; border: 1px solid #2f3a49;
-        border-radius: 10px; padding: 12px 14px; font-size: 14px; margin-bottom: 8px;
+        border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 6px; line-height: 1.3;
         transition: border-color 0.15s, background 0.15s;
       }
       .opt:hover:not(:disabled) { border-color: #c9a227; background: #26303d; }
@@ -30,16 +36,16 @@
       .opt.correct { background: #1c3a2a; border-color: #38a169; }
       .opt.wrong { background: #3a1f22; border-color: #c53030; }
       .opt.dim { opacity: 0.5; }
-      .meta { display: flex; justify-content: space-between; color: #94a3b8; font-size: 12px; margin-bottom: 14px; }
-      .link { display: inline-block; margin-top: 10px; color: #c9a227; font-size: 13px; }
+      .meta { display: flex; justify-content: space-between; color: #94a3b8; font-size: 12px; margin-bottom: 10px; }
+      .link { display: inline-block; margin-top: 8px; color: #c9a227; font-size: 13px; }
       .primary {
         background: #c9a227; color: #14181c; border: none; border-radius: 10px;
-        padding: 12px 18px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+        padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
       }
       .primary:disabled { opacity: 0.5; cursor: default; }
-      .score-big { font-size: 34px; font-weight: 700; color: #c9a227; }
+      .score-big { font-size: 30px; font-weight: 700; color: #c9a227; }
       .center { text-align: center; }
-      .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #232b36; font-size: 14px; }
+      .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #232b36; font-size: 14px; }
       .stage { position: relative; }
       .qcard { animation: qin 0.3s ease both; }
       .qcard.exit {
@@ -49,9 +55,22 @@
       }
       @keyframes qin { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
       @keyframes qout { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-28px); } }
-      .next { margin-top: 6px; }
-      .footer { color: #64748b; font-size: 11px; text-align: center; margin-top: 8px; }
+      .next { margin-top: 4px; }
+      .footer { color: #64748b; font-size: 11px; text-align: center; margin-top: 6px; }
       .footer a { color: #94a3b8; }
+      /* Inline posts can render well under the 512px request on the mobile
+         app — compress so a full question still fits without scrolling. */
+      @media (max-height: 440px) {
+        #root { padding-top: 8px; padding-bottom: 10px; }
+        .sub { display: none; }
+        h1 { font-size: 16px; margin-bottom: 2px; }
+        .meta { margin-bottom: 6px; }
+        .card { padding: 10px 12px; margin-bottom: 8px; }
+        .prompt { font-size: 14px; margin-bottom: 8px; }
+        .opt { padding: 8px 11px; margin-bottom: 5px; }
+        .primary { padding: 9px 16px; }
+        .next { margin-top: 2px; }
+      }
     </style>
   </head>
   <body>
