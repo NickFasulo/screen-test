@@ -22,6 +22,8 @@ const postsKey = (ck: string) => `st:posts:${ck}`
 const picksKey = (ck: string, uid: string) => `st:picks:${ck}:${uid}`
 const scoreKey = (subId: string) => `st:score:${subId}`
 const streakKey = (uid: string) => `st:streak:${uid}`
+const nameKey = (uid: string) => `st:name:${uid}`
+const answerLockKey = (ck: string, uid: string, qid: string) => `st:anslock:${ck}:${uid}:${qid}`
 
 export const todayUtc = () => new Date().toISOString().split('T')[0]
 export const weekKeyUtc = (d = new Date()) => {
@@ -153,9 +155,22 @@ export async function submitAnswer(questionId: string, choice: number) {
   }
   const ck = contentKey(data)
   const uid = userId()
+  // Atomic claim: concurrent submissions could both pass an hGet check and
+  // double-score; the nx lock makes the first writer win.
+  const claimed = await redis
+    .set(answerLockKey(ck, uid, questionId), '1', { nx: true, expiration: new Date(Date.now() + 60_000) })
+    .catch(() => null)
+  if (!claimed) return { error: 'already answered', status: 409 as const }
+
   const existing = await redis.hGet(picksKey(ck, uid), questionId).catch(() => null)
   if (existing !== null && existing !== undefined) {
     return { error: 'already answered', status: 409 as const }
+  }
+
+  // Store the username once so leaderboards can show u/name, not t2_ ids.
+  if (!(await redis.get(nameKey(uid)).catch(() => null))) {
+    const name = await reddit.getCurrentUsername().catch(() => undefined)
+    if (name) await redis.set(nameKey(uid), name).catch(() => {})
   }
 
   const correct = choice === question.answerIndex
@@ -183,9 +198,11 @@ export async function submitAnswer(questionId: string, choice: number) {
 
 export async function getLeaderboard() {
   const all = ((await redis.hGetAll(scoreKey(subId())).catch(() => null)) || {}) as Record<string, string>
-  const rows = Object.entries(all)
+  const top = Object.entries(all)
     .map(([uid, s]) => ({ userId: uid, score: Number(s) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 10)
+  const names = await Promise.all(top.map((r) => redis.get(nameKey(r.userId)).catch(() => null)))
+  const rows = top.map((r, i) => ({ ...r, username: names[i] || r.userId.replace(/^t2_/, '') }))
   return { rows }
 }

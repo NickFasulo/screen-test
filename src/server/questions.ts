@@ -217,9 +217,17 @@ const collectionQ: Builder = (ctx, candidates) => {
   const memberSets = new Map<string, Set<number>>(
     collectionGroups(ctx.pool).map(([name, ts]) => [name, new Set(ts.map((t) => t.tmdbId))])
   )
+  // Dedupe display titles — remakes (e.g. two "Dune" entries) would otherwise
+  // render as indistinguishable options, which make() can't catch here.
+  const uniqTitles = (ts: PoolTitle[]) => {
+    const seen = new Set<string>()
+    return ts.filter((t) => !seen.has(norm(t.title)) && seen.add(norm(t.title)))
+  }
   for (const [name, members] of memberSets) {
-    const inPool = candidates.filter((t) => members.has(t.tmdbId))
-    const outsiders = candidates.filter((t) => !members.has(t.tmdbId) && !ctx.used.has(`t${t.tmdbId}`))
+    const inPool = uniqTitles(candidates.filter((t) => members.has(t.tmdbId)))
+    const outsiders = candidates.filter(
+      (t) => !members.has(t.tmdbId) && !ctx.used.has(`t${t.tmdbId}`) && !inPool.some((m) => norm(m.title) === norm(t.title))
+    )
     if (inPool.length < 3 || !outsiders.length) continue
     const answer = outsiders[0]
     const options = [answer.title, ...shuffle(ctx.rng, inPool).slice(0, 3).map((t) => t.title)]
@@ -245,7 +253,10 @@ const directedByQ = (ctx: Ctx, name: string, candidates: PoolTitle[]): TriviaQue
   const distractors = candidates
     .filter((t) => ![...t.directors, ...t.creators].some((d) => norm(d) === norm(name)))
     .map((t) => t.title)
-  const q = make(ctx, `Which of these did ${name} direct?`, answer.title, distractors, titleLink(answer))
+  // People land in `directed` via TV creator credits too — "directed a show"
+  // is the wrong verb for a pure showrunner.
+  const verb = answer.tmdbType === 'tv' && !answer.directors.some((d) => norm(d) === norm(name)) ? 'create' : 'direct'
+  const q = make(ctx, `Which of these did ${name} ${verb}?`, answer.title, distractors, titleLink(answer))
   if (q) ctx.used.add(`t${answer.tmdbId}`)
   return q
 }

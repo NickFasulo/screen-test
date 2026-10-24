@@ -151,13 +151,14 @@ const toPoolTitle = (d: TmdbDetails, id: number, type: 'movie' | 'tv'): PoolTitl
     .map((c) => ({ name: c.name, character: (c.character || '').split(' / ')[0].trim() }))
   const directors = (d.credits?.crew || []).filter((c) => c.job === 'Director').map((c) => c.name)
   const creators = (d.created_by || []).map((c) => c.name)
-  if (!title || !dateStr || cast.length < 3) return null
+  const year = Number(dateStr?.slice(0, 4))
+  if (!title || !dateStr || !Number.isFinite(year) || cast.length < 3) return null
   if (type === 'movie' && !directors.length) return null
   return {
     tmdbId: id,
     tmdbType: type,
     title,
-    year: Number(dateStr.slice(0, 4)),
+    year,
     directors,
     cast,
     creators,
@@ -206,7 +207,16 @@ export async function ensurePool(force = false): Promise<Pool | null> {
   if (pool && !force && Date.now() - pool.updatedAt < POOL_FRESH_MS) return pool
 
   const locked = await redis.set(POOL_LOCK, '1', { nx: true, expiration: new Date(Date.now() + 300_000) }).catch(() => null)
-  if (!locked) return pool
+  if (!locked) {
+    // Cold start with no pool: give the lock holder a moment and re-check once
+    // rather than failing the post outright.
+    if (!pool) {
+      await new Promise((r) => setTimeout(r, 2500))
+      const retry = await redis.get(POOL_KEY).catch(() => null)
+      return retry ? (JSON.parse(retry) as Pool) : null
+    }
+    return pool
+  }
   try {
     const fresh = await buildPool()
     if (fresh) {
