@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "screen-test",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "entry": "index.html"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs",
+    "externalEndpoints": {
+      "quiz-now": {
+        "endpoint": "/external/quiz-now",
+        "scopes": ["install", "global"]
+      },
+      "spotlight-now": {
+        "endpoint": "/external/spotlight-now",
+        "scopes": ["install", "global"]
+      },
+      "pool-refresh-now": {
+        "endpoint": "/external/pool-refresh-now",
+        "scopes": ["install", "global"]
+      }
+    }
+  },
+  "permissions": {
+    "reddit": true,
+    "redis": true,
+    "http": {
+      "enable": true,
+      "domains": ["api.themoviedb.org"]
+    }
+  },
+  "settings": {
+    "global": {
+      "tmdb-api-key": {
+        "type": "string",
+        "label": "TMDB API Key",
+        "helpText": "Developer-set key used to fetch title metadata for quiz generation. Set once via `devvit settings set tmdb-api-key`.",
+        "isSecret": true
+      }
+    },
+    "subreddit": {
+      "post_days": {
+        "type": "multiSelect",
+        "label": "Quiz post days",
+        "helpText": "Days of the week (UTC) the daily quiz post is created.",
+        "options": [
+          { "label": "Monday", "value": "1" },
+          { "label": "Tuesday", "value": "2" },
+          { "label": "Wednesday", "value": "3" },
+          { "label": "Thursday", "value": "4" },
+          { "label": "Friday", "value": "5" },
+          { "label": "Saturday", "value": "6" },
+          { "label": "Sunday", "value": "0" }
+        ],
+        "defaultValue": ["1", "3", "5"]
+      }
+    }
+  },
+  "scheduler": {
+    "tasks": {
+      "pool-refresh": {
+        "endpoint": "/internal/scheduler/pool-refresh",
+        "cron": "0 8 * * 0"
+      },
+      "daily-quiz": {
+        "endpoint": "/internal/scheduler/daily-quiz",
+        "cron": "0 16 * * *"
+      },
+      "weekly-spotlight": {
+        "endpoint": "/internal/scheduler/weekly-spotlight",
+        "cron": "30 16 * * 3"
+      }
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Post today's quiz",
+        "description": "Create today's Screen Test quiz post manually",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/quiz-now"
+      },
+      {
+        "label": "Post this week's spotlight",
+        "description": "Create the weekly themed quiz post manually",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/spotlight-now"
+      }
+    ]
+  },
+  "dev": {
+    "subreddit": "screen_test_dev"
+  }
+}
