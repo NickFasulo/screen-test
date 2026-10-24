@@ -1,3 +1,4 @@
+import { navigateTo } from '@devvit/web/client'
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -63,7 +64,14 @@ function QuestionCard({
         )
       })}
       {revealed && (
-        <a className='link' href={revealed.link} target='_blank' rel='noreferrer'>
+        <a
+          className='link'
+          href={revealed.link}
+          onClick={(e) => {
+            e.preventDefault()
+            navigateTo(revealed.link)
+          }}
+        >
           More on this title →
         </a>
       )}
@@ -210,8 +218,26 @@ function App() {
       </div>
       <Quiz state={state} />
       <div className='footer'>
-        Data: <a href='https://www.themoviedb.org' target='_blank' rel='noreferrer'>TMDB</a> · Built by{' '}
-        <a href='https://www.galaxymovies.app' target='_blank' rel='noreferrer'>galaxymovies.app</a>
+        Data:{' '}
+        <a
+          href='https://www.themoviedb.org'
+          onClick={(e) => {
+            e.preventDefault()
+            navigateTo('https://www.themoviedb.org')
+          }}
+        >
+          TMDB
+        </a>{' '}
+        · Built by{' '}
+        <a
+          href='https://www.galaxymovies.app'
+          onClick={(e) => {
+            e.preventDefault()
+            navigateTo('https://www.galaxymovies.app')
+          }}
+        >
+          galaxymovies.app
+        </a>
       </div>
     </>
   )
