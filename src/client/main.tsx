@@ -17,7 +17,16 @@ interface State {
   picks?: Record<string, string>
   score?: number
   streak?: number
+  solved?: number
 }
+
+const CONFETTI_COLORS = ['#c9a227', '#38a169', '#7aa2e0', '#e2e8f0', '#c53030']
+const CONFETTI = Array.from({ length: 16 }, (_, i) => ({
+  left: `${(i * 61) % 100}%`,
+  background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  animationDelay: `${(i % 7) * 0.12}s`,
+  animationDuration: `${1.4 + (i % 4) * 0.2}s`
+}))
 
 const api = async <T,>(path: string, body?: unknown): Promise<T> => {
   const resp = await fetch(path, {
@@ -101,11 +110,14 @@ function Quiz({ state }: { state: State }) {
   const [answers, setAnswers] = useState<Record<string, { answerIndex: number; link: string }>>({})
   const [score, setScore] = useState(state.score || 0)
   const [streak, setStreak] = useState(state.streak || 0)
+  const [bump, setBump] = useState(0)
   const [board, setBoard] = useState<{ userId: string; score: number }[] | null>(null)
 
   const current = index < questions.length ? questions[index] : undefined
   const done = !current && questions.length > 0
-  const correctCount = questions.filter((q) => answers[q.id]?.answerIndex === picks[q.id]).length
+  // `solved` is the server-computed correct count for a returning player —
+  // `answers` only exists for questions answered this session.
+  const correctCount = state.solved ?? questions.filter((q) => answers[q.id]?.answerIndex === picks[q.id]).length
 
   const answer = async (q: Question, choice: number) => {
     if (picks[q.id] !== undefined) return
@@ -118,6 +130,7 @@ function Quiz({ state }: { state: State }) {
       setAnswers((a) => ({ ...a, [q.id]: { answerIndex: res.answerIndex, link: res.link } }))
       setScore(res.score)
       if (res.streak) setStreak(res.streak)
+      if (res.correct) setBump((b) => b + 1)
     } catch {
       // already answered or offline — leave pick marked
     }
@@ -140,9 +153,14 @@ function Quiz({ state }: { state: State }) {
         <span>
           Question {Math.min(index + 1, questions.length)} / {questions.length}
         </span>
-        <span>
+        <span className='scorewrap'>
           Score {score}
           {streak > 1 ? ` · ${streak}-set streak` : ''}
+          {bump > 0 && (
+            <em key={bump} className='plus'>
+              +1
+            </em>
+          )}
         </span>
       </div>
       <div className='stage'>
@@ -172,7 +190,14 @@ function Quiz({ state }: { state: State }) {
         )}
       </div>
       {done && (
-        <div className='card center'>
+        <div className='card center done'>
+          {correctCount === questions.length && (
+            <div className='confetti' aria-hidden>
+              {CONFETTI.map((s, i) => (
+                <i key={i} style={s} />
+              ))}
+            </div>
+          )}
           <div className='brand'>Cut. That's a wrap.</div>
           <div className='score-big'>
             {correctCount}/{questions.length}
