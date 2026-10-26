@@ -72,9 +72,8 @@ const FONT = 'Arial, Helvetica, sans-serif'
 const icon = `<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="512" height="512" rx="104" fill="url(#bgGlow)"/>
-${beams(512, 512, 256, 350)}
-${badge(256, 232, 168)}
-<text x="256" y="452" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="34" letter-spacing="6" fill="${CYAN}">SCREEN TEST</text>
+${beams(512, 512, 256, 320)}
+${badge(256, 256, 190)}
 </svg>`
 
 const tile = `<svg width="560" height="256" xmlns="http://www.w3.org/2000/svg">
