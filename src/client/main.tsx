@@ -113,6 +113,7 @@ function Quiz({ state }: { state: State }) {
   const [bump, setBump] = useState(0)
   const [board, setBoard] = useState<{ userId: string; username: string; score: number }[] | null>(null)
   const [boardOpen, setBoardOpen] = useState(false)
+  const [myRank, setMyRank] = useState<{ rank: number; score: number } | null>(null)
 
   const current = index < questions.length ? questions[index] : undefined
   const done = !current && questions.length > 0
@@ -211,8 +212,11 @@ function Quiz({ state }: { state: State }) {
                 setBoardOpen((o) => !o)
                 return
               }
-              api<{ rows: { userId: string; username: string; score: number }[] }>('/api/leaderboard').then((r) => {
+              api<{ rows: { userId: string; username: string; score: number }[]; me?: { rank: number; score: number } | null }>(
+                '/api/leaderboard',
+              ).then((r) => {
                 setBoard(r.rows)
+                setMyRank(r.me ?? null)
                 setBoardOpen(true)
               })
             }}
@@ -224,13 +228,19 @@ function Quiz({ state }: { state: State }) {
               {board && (
                 <div style={{ marginTop: 14 }}>
                   {board.map((r, i) => (
-                    <div className='row' key={r.userId} style={{ animationDelay: `${i * 40}ms` }}>
+                    <div className={`row${i + 1 === myRank?.rank ? ' me' : ''}`} key={r.userId} style={{ animationDelay: `${i * 40}ms` }}>
                       <span>
                         #{i + 1} u/{r.username}
                       </span>
                       <span>{r.score} pts</span>
                     </div>
                   ))}
+                  {myRank && myRank.rank > board.length && (
+                    <div className='row me' style={{ animationDelay: `${board.length * 40}ms` }}>
+                      <span>You're #{myRank.rank}</span>
+                      <span>{myRank.score} pts</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

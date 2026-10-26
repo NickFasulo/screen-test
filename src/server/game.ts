@@ -198,11 +198,13 @@ export async function submitAnswer(questionId: string, choice: number) {
 
 export async function getLeaderboard() {
   const all = ((await redis.hGetAll(scoreKey(subId())).catch(() => null)) || {}) as Record<string, string>
-  const top = Object.entries(all)
+  const sorted = Object.entries(all)
     .map(([uid, s]) => ({ userId: uid, score: Number(s) }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
+  const top = sorted.slice(0, 10)
   const names = await Promise.all(top.map((r) => redis.get(nameKey(r.userId)).catch(() => null)))
   const rows = top.map((r, i) => ({ ...r, username: names[i] || r.userId.replace(/^t2_/, '') }))
-  return { rows }
+  const myIndex = sorted.findIndex((r) => r.userId === userId())
+  const me = myIndex === -1 ? null : { rank: myIndex + 1, score: sorted[myIndex].score }
+  return { rows, me }
 }
