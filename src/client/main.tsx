@@ -20,7 +20,7 @@ interface State {
   solved?: number
 }
 
-const CONFETTI_COLORS = ['#c9a227', '#38a169', '#7aa2e0', '#e2e8f0', '#c53030']
+const CONFETTI_COLORS = ['#ffc947', '#38a169', '#4dd8ff', '#f4f0ff', '#ff4d8d']
 const CONFETTI = Array.from({ length: 16 }, (_, i) => ({
   left: `${(i * 61) % 100}%`,
   background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
