@@ -172,13 +172,15 @@ async function main() {
     encoder.width = 1500
     encoder.height = 1000
     encoder.frameRate = 24
-    encoder.kbps = 2600
-    encoder.speed = 8
+    encoder.kbps = 2500
+    encoder.speed = 4
+    encoder.groupOfPictures = 24
     encoder.initialize()
     const FRAMES = 192
     for (let f = 0; f < FRAMES; f++) {
       const phase = Math.floor(f / 8) % 3
-      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 3 * f) / FRAMES)
+      // cos peaks at f=0 so frame 0 matches the static fallback PNG exactly
+      const glow = 0.85 + 0.15 * Math.cos((2 * Math.PI * 3 * f) / FRAMES)
       const { data } = await sharp(Buffer.from(featuringSvg(phase, glow)))
         .ensureAlpha()
         .raw()
