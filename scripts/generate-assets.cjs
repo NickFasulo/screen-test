@@ -1,15 +1,23 @@
 // Renders the app-directory assets: cinema-marquee "?" badge — warm
-// incandescent chase bulbs in sockets, brass-rimmed sign panels, spotlight
-// beams on deep indigo. Usage: node scripts/generate-assets.cjs
+// incandescent chase bulbs in sockets, brass rims on deep indigo.
+// Text is rendered via Righteous (OFL, bundled in scripts/fonts) converted
+// to vector paths so output is identical on any machine.
+// Usage: node scripts/generate-assets.cjs
 const sharp = require('sharp')
 const path = require('path')
+const TextToSVG = require('text-to-svg')
 
 const OUT = path.join(__dirname, '..', 'assets')
 const PINK = '#ff4d8d'
 const CYAN = '#4dd8ff'
 const WHITE = '#f4f0ff'
 const INK = '#15102e'
-const FONT = 'Arial, Helvetica, sans-serif'
+
+const tts = TextToSVG.loadSync(path.join(__dirname, 'fonts', 'Righteous-Regular.ttf'))
+const txt = (str, x, y, size, fill, letterSpacing = 0) =>
+  `<path d="${tts.getD(str, { x, y, fontSize: size, anchor: 'center baseline', letterSpacing })}" fill="${fill}"/>`
+const txtMid = (str, x, y, size, fill) =>
+  `<path d="${tts.getD(str, { x, y, fontSize: size, anchor: 'center middle' })}" fill="${fill}"/>`
 
 const DEFS = `<defs>
   <radialGradient id="bgGlow" cx="50%" cy="38%" r="85%">
@@ -108,8 +116,8 @@ const badge = (cx, cy, r) => `
   ${bulbRing(cx, cy, r * 0.84, r * 0.24, r * 0.072)}
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="url(#disc)" stroke="#0e0a26" stroke-width="${r * 0.02}"/>
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="#5a44a8" stroke-width="${r * 0.012}" opacity="0.8"/>
-  <text x="${cx}" y="${cy + r * 0.3}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="#0b0820">?</text>
-  <text x="${cx}" y="${cy + r * 0.28}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="${WHITE}">?</text>`
+  ${txtMid('?', cx, cy + r * 0.03, r * 0.86, '#0b0820')}
+  ${txtMid('?', cx, cy, r * 0.86, WHITE)}`
 
 const vignette = (w, h) => `<rect width="${w}" height="${h}" fill="url(#vign)"/>`
 
@@ -125,9 +133,9 @@ ${DEFS}
 <rect width="560" height="256" fill="url(#bgGlow)"/>
 <rect x="12" y="12" width="536" height="232" rx="20" fill="none" stroke="url(#brass)" stroke-width="6"/>
 ${bulbRect(32, 32, 496, 192, 28, 8)}
-<text x="280" y="116" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="38" letter-spacing="2" fill="${WHITE}">SCREEN TEST</text>
+${txt('SCREEN TEST', 280, 118, 40, WHITE, 0.04)}
 <rect x="180" y="140" width="200" height="4" rx="2" fill="${PINK}"/>
-<text x="280" y="174" text-anchor="middle" font-family="${FONT}" font-size="17" letter-spacing="3" fill="${CYAN}">DAILY FILM &amp; TV TRIVIA</text>
+${txt('DAILY FILM & TV TRIVIA', 280, 174, 17, CYAN, 0.16)}
 ${vignette(560, 256)}
 </svg>`
 
@@ -136,10 +144,10 @@ ${DEFS}
 <rect width="1500" height="1000" fill="url(#bgGlow)"/>
 <rect x="30" y="95" width="1440" height="810" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
 ${bulbRect(64, 129, 1372, 742, 48, 14)}
-<text x="750" y="440" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="100" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
+${txt('SCREEN TEST', 750, 440, 100, WHITE, 0.1)}
 <rect x="570" y="505" width="360" height="6" rx="3" fill="${PINK}"/>
-<text x="750" y="590" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
-<text x="750" y="656" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
+${txt('The daily movie & TV trivia game', 750, 590, 40, '#cbd0e8')}
+${txt("WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED", 750, 656, 26, CYAN, 0.18)}
 ${vignette(1500, 1000)}
 </svg>`
 
