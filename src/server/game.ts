@@ -14,11 +14,18 @@ interface QuizPayload {
 
 // Content key: `d:{date}` for daily quizzes, `s:{week}` for spotlights. Both
 // namespaces share picks/scores/streaks so a player answering the spotlight
-// builds the same streak as the daily quiz.
-const contentKey = (d: { date?: string; week?: string }) => (d.week ? `s:${d.week}` : `d:${d.date}`)
-const quizKey = (date: string) => `st:quiz:${date}`
-const spotKey = (week: string) => `st:spotlight:${week}`
-const postsKey = (ck: string) => `st:posts:${ck}`
+// builds the same streak as the daily quiz. Forced reposts get a :vN suffix
+// so each post owns its payload and picks; reusing the day's key would swap
+// questions under identical positional ids and corrupt the earlier post.
+const contentKey = (d: PostData) => `${d.week ? `s:${d.week}` : `d:${d.date}`}${d.v ? `:${d.v}` : ''}`
+const quizKey = (date: string, v?: string) => `st:quiz:${date}${v ? `:${v}` : ''}`
+const spotKey = (week: string, v?: string) => `st:spotlight:${week}${v ? `:${v}` : ''}`
+const postVarKey = 'st:postv'
+// Devvit Redis has no keyspace scan, so post records live in one hash and
+// answered uids in another — resetAll enumerates them instead of KEYS.
+const postsHashKey = 'st:posts'
+const postField = (ck: string, sid: string) => `${ck}|${sid}`
+const uidIndexKey = 'st:idx:uids'
 const picksKey = (ck: string, uid: string) => `st:picks:${ck}:${uid}`
 const scoreKey = (subId: string) => `st:score:${subId}`
 const streakKey = (uid: string) => `st:streak:${uid}`
@@ -53,7 +60,7 @@ const userId = () => String(context.userId ?? 'anon')
 
 // The post record is stored at creation time so client /api calls only need
 // context.postId — context.postData isn't reliably populated on those.
-type PostData = { mode: 'quiz' | 'spotlight'; date?: string; week?: string }
+type PostData = { mode: 'quiz' | 'spotlight'; date?: string; week?: string; v?: string }
 const postKey = (postId: string) => `st:post:${postId}`
 async function getPostData(): Promise<PostData> {
   const raw = context.postId ? await redis.get(postKey(context.postId)).catch(() => null) : null
@@ -62,7 +69,7 @@ async function getPostData(): Promise<PostData> {
 }
 
 async function payloadFor(data: PostData): Promise<QuizPayload | null> {
-  const key = data.mode === 'spotlight' ? spotKey(data.week || weekKeyUtc()) : quizKey(data.date || todayUtc())
+  const key = data.mode === 'spotlight' ? spotKey(data.week || weekKeyUtc(), data.v) : quizKey(data.date || todayUtc(), data.v)
   const raw = await redis.get(key).catch(() => null)
   return raw ? (JSON.parse(raw) as QuizPayload) : null
 }
@@ -70,56 +77,58 @@ async function payloadFor(data: PostData): Promise<QuizPayload | null> {
 export type Result = { status: string; detail?: string }
 
 // `force` is for manual menu/external triggers: the scheduler dedups once per
-// day, but a mod explicitly re-running the action wants another post. Note a
-// forced post rebuilds the day's quiz payload, resetting visible progress on
-// the earlier post since picks are keyed by question id.
+// day, but a mod explicitly re-running the action wants another post.
 export async function createQuizPost(force = false): Promise<Result> {
   const date = todayUtc()
-  if (!force && (await redis.hGet(postsKey(`d:${date}`), subId()))) {
+  if (!force && (await redis.hGet(postsHashKey, postField(`d:${date}`, subId())))) {
     return { status: 'skipped', detail: 'already posted today' }
   }
   const pool = await ensurePool()
-  const quiz = pool ? buildDailyQuiz(pool, date) : null
+  const n = force ? Number(await redis.hIncrBy(postVarKey, `${subId()}:d:${date}`, 1).catch(() => 0)) + 1 : 0
+  const v = n > 1 ? `v${n}` : undefined
+  const quiz = pool ? buildDailyQuiz(pool, `${date}${v ? `:${v}` : ''}`) : null
   if (!quiz) return { status: 'failed', detail: 'no quiz payload' }
-  await redis.set(quizKey(date), JSON.stringify(quiz))
+  await redis.set(quizKey(date, v), JSON.stringify(quiz))
 
   const post = await reddit.submitCustomPost({
     subredditName: subName(),
     title: `Screen Test: today's film & TV trivia`,
     entry: 'default',
-    postData: { mode: 'quiz', date },
+    postData: { mode: 'quiz', date, ...(v ? { v } : {}) },
     styles: { heightPixels: 512, backgroundColor: '#0a0820' },
     textFallback: {
       text: `**Screen Test: daily film & TV trivia**\n\n${quiz.questions.length} questions about movies, shows, actors and directors. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
     }
   })
-  await redis.hSet(postsKey(`d:${date}`), { [subId()]: post.id })
-  await redis.set(postKey(post.id), JSON.stringify({ mode: 'quiz', date }))
+  await redis.hSet(postsHashKey, { [postField(`d:${date}`, subId())]: post.id })
+  await redis.set(postKey(post.id), JSON.stringify({ mode: 'quiz', date, ...(v ? { v } : {}) }))
   return { status: 'posted' }
 }
 
 export async function createSpotlightPost(force = false): Promise<Result> {
   const week = weekKeyUtc()
-  if (!force && (await redis.hGet(postsKey(`s:${week}`), subId()))) {
+  if (!force && (await redis.hGet(postsHashKey, postField(`s:${week}`, subId())))) {
     return { status: 'skipped', detail: 'already posted this week' }
   }
   const pool = await ensurePool()
-  const spotlight = pool ? buildSpotlight(pool, week) : null
+  const n = force ? Number(await redis.hIncrBy(postVarKey, `${subId()}:s:${week}`, 1).catch(() => 0)) + 1 : 0
+  const v = n > 1 ? `v${n}` : undefined
+  const spotlight = pool ? buildSpotlight(pool, `${week}${v ? `:${v}` : ''}`) : null
   if (!spotlight) return { status: 'failed', detail: 'no spotlight payload' }
-  await redis.set(spotKey(week), JSON.stringify(spotlight))
+  await redis.set(spotKey(week, v), JSON.stringify(spotlight))
 
   const post = await reddit.submitCustomPost({
     subredditName: subName(),
     title: `Screen Test Spotlight: ${spotlight.theme}`,
     entry: 'default',
-    postData: { mode: 'spotlight', week },
+    postData: { mode: 'spotlight', week, ...(v ? { v } : {}) },
     styles: { heightPixels: 512, backgroundColor: '#0a0820' },
     textFallback: {
       text: `**Screen Test Spotlight: ${spotlight.theme}**\n\n${spotlight.questions.length} themed trivia questions. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
     }
   })
-  await redis.hSet(postsKey(`s:${week}`), { [subId()]: post.id })
-  await redis.set(postKey(post.id), JSON.stringify({ mode: 'spotlight', week }))
+  await redis.hSet(postsHashKey, { [postField(`s:${week}`, subId())]: post.id })
+  await redis.set(postKey(post.id), JSON.stringify({ mode: 'spotlight', week, ...(v ? { v } : {}) }))
   return { status: 'posted' }
 }
 
@@ -128,6 +137,36 @@ export async function refreshPool(): Promise<Result> {
   return pool
     ? { status: 'ok', detail: `${pool.titles.length} titles` }
     : { status: 'failed', detail: 'pool build failed' }
+}
+
+// Dev-only escape hatch: deletes every key the app writes (payloads, picks,
+// scores, streaks, post records). Gated to the dev subreddit so a stray mod
+// click on a production install can't wipe real player data.
+const DEV_SUB = 'screen_test_dev'
+export async function resetAll(): Promise<Result> {
+  if (subName() !== DEV_SUB) return { status: 'failed', detail: 'dev subreddit only' }
+  const posts = (await redis.hGetAll(postsHashKey).catch(() => null)) || {}
+  const uids = Object.keys((await redis.hGetAll(uidIndexKey).catch(() => null)) || {})
+  const dels = new Set<string>([postsHashKey, uidIndexKey, postVarKey])
+  for (const [field, postId] of Object.entries(posts)) {
+    const [ck, sid] = field.split('|')
+    dels.add(`st:post:${postId}`)
+    dels.add(ck.startsWith('s:') ? `st:spotlight:${ck.slice(2)}` : `st:quiz:${ck.slice(2)}`)
+    dels.add(scoreKey(sid))
+    for (const uid of uids) {
+      dels.add(picksKey(ck, uid))
+      for (let i = 1; i <= 10; i++) {
+        dels.add(answerLockKey(ck, uid, `q${i}`))
+        dels.add(shownKey(ck, uid, `q${i}`))
+      }
+    }
+  }
+  for (const uid of uids) {
+    dels.add(streakKey(uid))
+    dels.add(nameKey(uid))
+  }
+  await Promise.all([...dels].map((k) => redis.del(k).catch(() => {})))
+  return { status: 'ok', detail: `${dels.size} keys cleared` }
 }
 
 // Whether today is a configured post day for this install. `post_days` is a
@@ -201,10 +240,12 @@ export async function submitAnswer(questionId: string, choice: number) {
   }
 
   // Store the username once so leaderboards can show u/name, not t2_ ids.
+  // The uid index lets the dev reset find per-user keys without a key scan.
   if (!(await redis.get(nameKey(uid)).catch(() => null))) {
     const name = await reddit.getCurrentUsername().catch(() => undefined)
     if (name) await redis.set(nameKey(uid), name).catch(() => {})
   }
+  await redis.hSet(uidIndexKey, { [uid]: '1' }).catch(() => {})
 
   const correct = choice === question.answerIndex
   await redis.hSet(picksKey(ck, uid), { [questionId]: String(choice) })

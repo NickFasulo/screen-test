@@ -11,6 +11,7 @@ import {
   isPostDay,
   markShown,
   refreshPool,
+  resetAll,
   submitAnswer
 } from './game'
 import type { Result } from './game'
@@ -79,6 +80,7 @@ const externalHandler = (fn: () => Promise<Result>) => async (c: { json: (b: unk
 
 app.post('/internal/menu/quiz-now', menuHandler(() => createQuizPost(true)))
 app.post('/internal/menu/spotlight-now', menuHandler(() => createSpotlightPost(true)))
+app.post('/internal/menu/reset-now', menuHandler(resetAll))
 
 app.post('/external/quiz-now', externalHandler(() => createQuizPost(true)))
 app.post('/external/spotlight-now', externalHandler(() => createSpotlightPost(true)))

@@ -129,6 +129,13 @@
         "forUserType": "moderator",
         "location": "subreddit",
         "endpoint": "/internal/menu/spotlight-now"
+      },
+      {
+        "label": "Reset all quiz data",
+        "description": "Dev only: clear all stored quiz, pick, score, streak and post state",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/reset-now"
       }
     ]
   },
