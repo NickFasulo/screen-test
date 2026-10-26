@@ -140,12 +140,12 @@ ${vignette(560, 256)}
 const featuring = `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="1500" height="1000" fill="url(#bgGlow)"/>
-<rect x="30" y="30" width="1440" height="940" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
-${bulbRect(64, 64, 1372, 872, 48, 14)}
-<text x="750" y="452" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="100" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
-<rect x="570" y="484" width="360" height="6" rx="3" fill="${PINK}"/>
-<text x="750" y="552" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
-<text x="750" y="620" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
+<rect x="30" y="95" width="1440" height="810" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
+${bulbRect(64, 129, 1372, 742, 48, 14)}
+<text x="750" y="440" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="100" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
+<rect x="570" y="505" width="360" height="6" rx="3" fill="${PINK}"/>
+<text x="750" y="572" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
+<text x="750" y="640" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
 ${vignette(1500, 1000)}
 </svg>`
 
