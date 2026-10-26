@@ -54,12 +54,18 @@ const bulb = (x, y, r, level) => {
   const socket = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 1.35).toFixed(1)}" fill="#241c10" stroke="#4d3b1a" stroke-width="${(r * 0.18).toFixed(1)}"/>`
   const dome = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#4a3a20"/>` +
     `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.24).toFixed(1)}" fill="#8a7440" opacity="0.45"/>`
-  if (level === 0) return socket + dome
+  if (level === 0)
+    return (
+      socket +
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.0).toFixed(1)}" fill="url(#halo)" opacity="0.14"/>` +
+      dome +
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)" opacity="0.14"/>`
+    )
   const o = level === 1 ? 0.5 : 1
   return (
     socket +
     (level === 1 ? dome : '') +
-    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.6).toFixed(1)}" fill="url(#halo)" opacity="${0.85 * o}"/>` +
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.9).toFixed(1)}" fill="url(#halo)" opacity="${o}"/>` +
     `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)" opacity="${o}"/>` +
     `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.3).toFixed(1)}" fill="#fffdf4" opacity="${0.9 * o}"/>`
   )
@@ -120,7 +126,6 @@ const sign = (x, y, w, h, rx, rim, spacing, bulbR) => `
 const icon = `<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="512" height="512" rx="104" fill="url(#bgGlow)"/>
-${beams(512, 512, 256, 300)}
 ${badge(256, 256, 216)}
 ${vignette(512, 512)}
 </svg>`
