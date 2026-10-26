@@ -69,9 +69,13 @@ async function payloadFor(data: PostData): Promise<QuizPayload | null> {
 
 export type Result = { status: string; detail?: string }
 
-export async function createQuizPost(): Promise<Result> {
+// `force` is for manual menu/external triggers: the scheduler dedups once per
+// day, but a mod explicitly re-running the action wants another post. Note a
+// forced post rebuilds the day's quiz payload, resetting visible progress on
+// the earlier post since picks are keyed by question id.
+export async function createQuizPost(force = false): Promise<Result> {
   const date = todayUtc()
-  if (await redis.hGet(postsKey(`d:${date}`), subId())) {
+  if (!force && (await redis.hGet(postsKey(`d:${date}`), subId()))) {
     return { status: 'skipped', detail: 'already posted today' }
   }
   const pool = await ensurePool()
@@ -94,9 +98,9 @@ export async function createQuizPost(): Promise<Result> {
   return { status: 'posted' }
 }
 
-export async function createSpotlightPost(): Promise<Result> {
+export async function createSpotlightPost(force = false): Promise<Result> {
   const week = weekKeyUtc()
-  if (await redis.hGet(postsKey(`s:${week}`), subId())) {
+  if (!force && (await redis.hGet(postsKey(`s:${week}`), subId()))) {
     return { status: 'skipped', detail: 'already posted this week' }
   }
   const pool = await ensurePool()

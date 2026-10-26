@@ -77,11 +77,11 @@ const externalHandler = (fn: () => Promise<Result>) => async (c: { json: (b: unk
   return c.json(result, result.status === 'failed' ? 500 : 200)
 }
 
-app.post('/internal/menu/quiz-now', menuHandler(createQuizPost))
-app.post('/internal/menu/spotlight-now', menuHandler(createSpotlightPost))
+app.post('/internal/menu/quiz-now', menuHandler(() => createQuizPost(true)))
+app.post('/internal/menu/spotlight-now', menuHandler(() => createSpotlightPost(true)))
 
-app.post('/external/quiz-now', externalHandler(createQuizPost))
-app.post('/external/spotlight-now', externalHandler(createSpotlightPost))
+app.post('/external/quiz-now', externalHandler(() => createQuizPost(true)))
+app.post('/external/spotlight-now', externalHandler(() => createSpotlightPost(true)))
 app.post('/external/pool-refresh-now', externalHandler(refreshPool))
 
 serve({ fetch: app.fetch, createServer, port: getServerPort() })
