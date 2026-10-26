@@ -222,8 +222,11 @@ async function main() {
         .toBuffer({ resolveWithObject: true })
       if (!palette) palette = quantize(data, TIDX)
       const idx = applyPalette(data, palette, 'rgba')
+      // dispose:1 (keep) is required for diff accumulation — an unspecified
+      // disposal is treated as restore-to-background by some viewers, which
+      // would flash the canvas between frames.
       if (!prev) {
-        gif.writeFrame(idx, W, H, { palette, delay: 100, repeat: 0 })
+        gif.writeFrame(idx, W, H, { palette, delay: 100, repeat: 0, dispose: 1 })
       } else {
         const diff = new Uint8Array(idx.length)
         for (let i = 0; i < idx.length; i++) diff[i] = idx[i] === prev[i] ? TIDX : idx[i]
@@ -231,6 +234,7 @@ async function main() {
           palette: palette.concat([[0, 0, 0]]),
           transparent: true,
           transparentIndex: TIDX,
+          dispose: 1,
           delay: 100
         })
       }
