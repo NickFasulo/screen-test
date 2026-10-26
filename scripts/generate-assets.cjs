@@ -113,12 +113,6 @@ const badge = (cx, cy, r) => `
 
 const vignette = (w, h) => `<rect width="${w}" height="${h}" fill="url(#vign)"/>`
 
-// Marquee sign panel: inset plate, brass rim, chase bulbs along the inner edge.
-const sign = (x, y, w, h, rx, rim, spacing, bulbR) => `
-  <rect x="${x - rim}" y="${y - rim}" width="${w + rim * 2}" height="${h + rim * 2}" rx="${rx + rim}" fill="url(#brass)"/>
-  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="url(#panel)" stroke="#0a0718" stroke-width="2"/>
-  ${bulbRect(x + rim * 1.7, y + rim * 1.7, w - rim * 3.4, h - rim * 3.4, spacing, bulbR)}`
-
 const icon = `<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="512" height="512" rx="104" fill="url(#bgGlow)"/>
@@ -129,11 +123,11 @@ ${vignette(512, 512)}
 const tile = `<svg width="560" height="256" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="560" height="256" fill="url(#bgGlow)"/>
-${sign(8, 8, 544, 240, 26, 10, 62, 7)}
-${badge(122, 130, 88)}
-<text x="228" y="120" font-family="${FONT}" font-weight="bold" font-size="40" letter-spacing="1" fill="${WHITE}">SCREEN TEST</text>
-<rect x="230" y="138" width="272" height="4" rx="2" fill="${PINK}"/>
-<text x="230" y="176" font-family="${FONT}" font-size="18" letter-spacing="3" fill="${CYAN}">DAILY FILM &amp; TV TRIVIA</text>
+<rect x="12" y="12" width="536" height="232" rx="20" fill="none" stroke="url(#brass)" stroke-width="6"/>
+${bulbRect(32, 32, 496, 192, 28, 8)}
+<text x="280" y="116" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="38" letter-spacing="2" fill="${WHITE}">SCREEN TEST</text>
+<rect x="180" y="140" width="200" height="4" rx="2" fill="${PINK}"/>
+<text x="280" y="174" text-anchor="middle" font-family="${FONT}" font-size="17" letter-spacing="3" fill="${CYAN}">DAILY FILM &amp; TV TRIVIA</text>
 ${vignette(560, 256)}
 </svg>`
 
