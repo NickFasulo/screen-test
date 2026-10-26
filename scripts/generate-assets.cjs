@@ -197,6 +197,50 @@ async function main() {
     encoder.delete()
     console.log('wrote devvit-featuring-1500x1000.mp4')
   }
+
+  // --gif: animated fallback for the featuring video (Reddit asks for a GIF
+  // fallback when featuring is a video: 3:2, 1000-1500px wide, 3-10s looped,
+  // <=3MB). 48 frames at 12fps = 3.84s. Shared palette from frame 0 plus
+  // transparent-index diffs against the previous frame keep the file small.
+  if (process.argv.includes('--gif')) {
+    const fs = require('fs')
+    const { GIFEncoder, quantize, applyPalette } = require('gifenc')
+    const W = 1000
+    const H = 667
+    const FRAMES = 48
+    const TIDX = 255
+    const gif = GIFEncoder()
+    let palette = null
+    let prev = null
+    for (let f = 0; f < FRAMES; f++) {
+      const phase = Math.floor(f / 4) % 3
+      const glow = 0.85 + 0.15 * Math.cos((2 * Math.PI * 2 * f) / FRAMES)
+      const { data } = await sharp(Buffer.from(featuringSvg(phase, glow)))
+        .resize(W, H)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+      if (!palette) palette = quantize(data, TIDX)
+      const idx = applyPalette(data, palette, 'rgba')
+      if (!prev) {
+        gif.writeFrame(idx, W, H, { palette, delay: 8, repeat: 0 })
+      } else {
+        const diff = new Uint8Array(idx.length)
+        for (let i = 0; i < idx.length; i++) diff[i] = idx[i] === prev[i] ? TIDX : idx[i]
+        gif.writeFrame(diff, W, H, {
+          palette: palette.concat([[0, 0, 0]]),
+          transparent: true,
+          transparentIndex: TIDX,
+          delay: 8
+        })
+      }
+      prev = idx
+      if (f % 12 === 0) console.log(`gif frame ${f}/${FRAMES}`)
+    }
+    gif.finish()
+    fs.writeFileSync(path.join(OUT, 'devvit-fallback-1000x667.gif'), Buffer.from(gif.bytes()))
+    console.log('wrote devvit-fallback-1000x667.gif')
+  }
 }
 
 main().catch((e) => {
