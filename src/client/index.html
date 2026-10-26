@@ -18,7 +18,13 @@
         min-height: 100vh;
         touch-action: manipulation;
       }
-      #root { max-width: 560px; margin: 0 auto; padding: 12px 14px 18px; }
+      #root {
+        max-width: 560px; margin: 0 auto; padding: 12px 14px 18px;
+        min-height: 100vh; display: flex; flex-direction: column;
+      }
+      /* Centers the game vertically in the post viewport; "safe" keeps the
+         top reachable if content ever exceeds the frame height. */
+      .main { flex: 1; display: flex; flex-direction: column; justify-content: safe center; }
       .top { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 4px; }
       .brand { color: #ffc947; font-family: 'Righteous', sans-serif; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
       .expand {
@@ -83,7 +89,7 @@
         .qcard, .qcard.exit, .opt.correct, .opt.wrong, .next, .plus, .done, .score-big { animation: none !important; }
         .confetti { display: none; }
       }
-      .footer { color: #6f6aa0; font-size: 11px; text-align: center; margin-top: 6px; }
+      .footer { color: #6f6aa0; font-size: 11px; text-align: center; margin-top: 14px; }
       .footer a { color: #a29fd0; }
       /* Inline posts can render well under the 512px request on the mobile
          app — compress so a full question still fits without scrolling. */

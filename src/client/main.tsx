@@ -233,35 +233,47 @@ function App() {
     api<State>('/api/state').then(setState).catch((e) => setErr(String(e)))
   }, [])
 
-  if (err) return <div className='card'>Something went wrong loading the game.</div>
-  if (!state) return <div className='card'>Loading…</div>
+  if (err)
+    return (
+      <div className='main'>
+        <div className='card'>Something went wrong loading the game.</div>
+      </div>
+    )
+  if (!state)
+    return (
+      <div className='main'>
+        <div className='card'>Loading…</div>
+      </div>
+    )
 
   return (
     <>
-      <div className='top'>
-        <div className='brand'>Screen Test</div>
-        {viewMode === 'inline' && (
-          <button
-            className='expand'
-            onClick={(e) => {
-              try {
-                requestExpandedMode(e.nativeEvent, 'default')
-              } catch {
-                // already expanded
-              }
-            }}
-          >
-            ⤢ Fullscreen
-          </button>
-        )}
+      <div className='main'>
+        <div className='top'>
+          <div className='brand'>Screen Test</div>
+          {viewMode === 'inline' && (
+            <button
+              className='expand'
+              onClick={(e) => {
+                try {
+                  requestExpandedMode(e.nativeEvent, 'default')
+                } catch {
+                  // already expanded
+                }
+              }}
+            >
+              ⤢ Fullscreen
+            </button>
+          )}
+        </div>
+        <h1>{state.mode === 'spotlight' ? state.theme || 'Weekly spotlight' : 'Daily film & TV trivia'}</h1>
+        <div className='sub'>
+          {state.mode === 'spotlight'
+            ? 'A themed round for the week. Every answer checked against real credits.'
+            : 'Movies, shows, actors, directors: one new set every post day.'}
+        </div>
+        <Quiz state={state} />
       </div>
-      <h1>{state.mode === 'spotlight' ? state.theme || 'Weekly spotlight' : 'Daily film & TV trivia'}</h1>
-      <div className='sub'>
-        {state.mode === 'spotlight'
-          ? 'A themed round for the week. Every answer checked against real credits.'
-          : 'Movies, shows, actors, directors: one new set every post day.'}
-      </div>
-      <Quiz state={state} />
       <div className='footer'>
         Data:{' '}
         <a
