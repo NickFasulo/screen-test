@@ -19,19 +19,20 @@
         touch-action: manipulation;
       }
       #root { max-width: 560px; margin: 0 auto; padding: 12px 14px 18px; }
-      .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+      .top { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 4px; }
       .brand { color: #ffc947; font-family: 'Righteous', sans-serif; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
       .expand {
+        position: absolute; right: 0; top: 50%; transform: translateY(-50%);
         background: none; border: 1px solid #3d2f78; color: #a29fd0;
         border-radius: 8px; padding: 3px 10px; font-size: 11px; cursor: pointer;
       }
       .expand:hover { border-color: #ffc947; color: #ffc947; }
-      h1 { font-family: 'Righteous', sans-serif; font-weight: 400; font-size: 20px; letter-spacing: 0.02em; margin-bottom: 3px; }
-      .sub { color: #a29fd0; font-size: 12.5px; margin-bottom: 12px; }
-      .card { background: #1d1749; border: 1px solid #3d2f78; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+      h1 { font-family: 'Righteous', sans-serif; font-weight: 400; font-size: 20px; letter-spacing: 0.02em; margin-bottom: 3px; text-align: center; }
+      .sub { color: #a29fd0; font-size: 12.5px; margin-bottom: 12px; text-align: center; }
+      .card { background: #1d1749; border: 1px solid #3d2f78; border-radius: 12px; padding: 14px; margin-bottom: 10px; text-align: center; }
       .prompt { font-family: 'Righteous', sans-serif; font-size: 15.5px; letter-spacing: 0.01em; margin-bottom: 10px; line-height: 1.35; }
       .opt {
-        display: block; width: 100%; text-align: left; cursor: pointer;
+        display: block; width: 100%; text-align: center; cursor: pointer;
         background: #262058; color: #f4f0ff; border: 1px solid #3d2f78;
         border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 6px; line-height: 1.3;
         transition: border-color 0.15s, background 0.15s, transform 0.08s;
@@ -42,7 +43,7 @@
       .opt.correct { background: #16382a; border-color: #38a169; animation: pop 0.35s ease; }
       .opt.wrong { background: #3a1a2e; border-color: #ff4d8d; animation: shake 0.3s ease; }
       .opt.dim { opacity: 0.5; }
-      .meta { display: flex; justify-content: space-between; color: #a29fd0; font-size: 12px; margin-bottom: 10px; }
+      .meta { display: flex; justify-content: center; gap: 18px; color: #a29fd0; font-size: 12px; margin-bottom: 10px; }
       .link { display: inline-block; margin-top: 8px; color: #4dd8ff; font-size: 13px; }
       .primary {
         background: #ffc947; color: #241c10; border: none; border-radius: 10px;

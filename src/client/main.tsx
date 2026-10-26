@@ -144,7 +144,7 @@ function Quiz({ state }: { state: State }) {
   }
 
   if (!questions.length) {
-    return <div className='card'>No quiz data — check back soon.</div>
+    return <div className='card'>No quiz data. Check back soon.</div>
   }
 
   return (
@@ -207,7 +207,7 @@ function Quiz({ state }: { state: State }) {
             Show leaderboard
           </button>
           {board && (
-            <div style={{ marginTop: 14, textAlign: 'left' }}>
+            <div style={{ marginTop: 14 }}>
               {board.map((r, i) => (
                 <div className='row' key={r.userId}>
                   <span>
@@ -258,8 +258,8 @@ function App() {
       <h1>{state.mode === 'spotlight' ? state.theme || 'Weekly spotlight' : 'Daily film & TV trivia'}</h1>
       <div className='sub'>
         {state.mode === 'spotlight'
-          ? 'A themed round for the week — every answer checked against real credits.'
-          : 'Movies, shows, actors, directors — one new set every post day.'}
+          ? 'A themed round for the week. Every answer checked against real credits.'
+          : 'Movies, shows, actors, directors: one new set every post day.'}
       </div>
       <Quiz state={state} />
       <div className='footer'>

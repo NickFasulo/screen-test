@@ -66,12 +66,12 @@ export async function createQuizPost(): Promise<Result> {
 
   const post = await reddit.submitCustomPost({
     subredditName: subName(),
-    title: `Screen Test — today's film & TV trivia`,
+    title: `Screen Test: today's film & TV trivia`,
     entry: 'default',
     postData: { mode: 'quiz', date },
     styles: { heightPixels: 512, backgroundColor: '#0a0820' },
     textFallback: {
-      text: `**Screen Test — daily film & TV trivia**\n\n${quiz.questions.length} questions about movies, shows, actors and directors. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
+      text: `**Screen Test: daily film & TV trivia**\n\n${quiz.questions.length} questions about movies, shows, actors and directors. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
     }
   })
   await redis.hSet(postsKey(`d:${date}`), { [subId()]: post.id })
@@ -91,12 +91,12 @@ export async function createSpotlightPost(): Promise<Result> {
 
   const post = await reddit.submitCustomPost({
     subredditName: subName(),
-    title: `Screen Test Spotlight — ${spotlight.theme}`,
+    title: `Screen Test Spotlight: ${spotlight.theme}`,
     entry: 'default',
     postData: { mode: 'spotlight', week },
     styles: { heightPixels: 512, backgroundColor: '#0a0820' },
     textFallback: {
-      text: `**Screen Test Spotlight — ${spotlight.theme}**\n\n${spotlight.questions.length} themed trivia questions. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
+      text: `**Screen Test Spotlight: ${spotlight.theme}**\n\n${spotlight.questions.length} themed trivia questions. Open on the Reddit app or new Reddit to play.\n\nData: TMDB · https://www.galaxymovies.app`
     }
   })
   await redis.hSet(postsKey(`s:${week}`), { [subId()]: post.id })
