@@ -118,8 +118,8 @@ const badge = (cx, cy, r) => `
   ${bulbRing(cx, cy, r * 0.84, r * 0.24, r * 0.072)}
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="url(#disc)" stroke="#0e0a26" stroke-width="${r * 0.02}"/>
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="#5a44a8" stroke-width="${r * 0.012}" opacity="0.8"/>
-  ${txtMid('?', cx, cy + r * 0.03, r * 0.86, '#0b0820')}
-  ${txtMid('?', cx, cy, r * 0.86, WHITE)}`
+  ${txtMid('?', cx + r * 0.025, cy + r * 0.03, r * 0.86, '#0b0820')}
+  ${txtMid('?', cx + r * 0.025, cy, r * 0.86, WHITE)}`
 
 const vignette = (w, h) => `<rect width="${w}" height="${h}" fill="url(#vign)"/>`
 
@@ -162,9 +162,9 @@ async function main() {
   await sharp(Buffer.from(featuringSvg())).png().toFile(path.join(OUT, 'devvit-fallback-1500x1000.png'))
   console.log('wrote assets/')
 
-  // --video: 4s seamless loop for the featuring slot (the only one that
-  // accepts video). Chase steps every ~0.33s like a real marquee; halos
-  // pulse gently.
+  // --video: 8s seamless loop for the featuring slot (the only one that
+  // accepts video; requires 6-15s). Chase steps every ~0.33s like a real
+  // marquee; halos pulse gently.
   if (process.argv.includes('--video')) {
     const fs = require('fs')
     const HME = require('h264-mp4-encoder')
@@ -175,10 +175,10 @@ async function main() {
     encoder.kbps = 12000
     encoder.speed = 8
     encoder.initialize()
-    const FRAMES = 120
+    const FRAMES = 240
     for (let f = 0; f < FRAMES; f++) {
       const phase = Math.floor(f / 10) % 3
-      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 2 * f) / FRAMES)
+      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 4 * f) / FRAMES)
       const { data } = await sharp(Buffer.from(featuringSvg(phase, glow)))
         .ensureAlpha()
         .raw()
