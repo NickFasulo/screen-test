@@ -9,6 +9,7 @@ import {
   getLeaderboard,
   getState,
   isPostDay,
+  markShown,
   refreshPool,
   submitAnswer
 } from './game'
@@ -29,6 +30,12 @@ app.post('/api/answer', async (c) => {
   const res = await submitAnswer(questionId, choice)
   if ('error' in res) return c.json({ error: res.error }, res.status)
   return c.json(res)
+})
+
+app.post('/api/shown', async (c) => {
+  const { questionId } = (await c.req.json().catch(() => ({}))) as { questionId?: string }
+  if (questionId) await markShown(questionId)
+  return c.json({ ok: true })
 })
 
 app.get('/api/leaderboard', async (c) => c.json(await getLeaderboard()))

@@ -60,6 +60,11 @@ function QuestionCard({
 }) {
   return (
     <div className={`card qcard${exiting ? ' exit' : ''}`} onAnimationEnd={onExitDone}>
+      {picked === undefined && !exiting && (
+        <div className='bonustrack' aria-hidden>
+          <div className='bonusfill' />
+        </div>
+      )}
       <div className='prompt'>{q.prompt}</div>
       {q.options.map((opt, i) => {
         let cls = 'opt'
@@ -110,7 +115,7 @@ function Quiz({ state }: { state: State }) {
   const [answers, setAnswers] = useState<Record<string, { answerIndex: number; link: string }>>({})
   const [score, setScore] = useState(state.score || 0)
   const [streak, setStreak] = useState(state.streak || 0)
-  const [bump, setBump] = useState(0)
+  const [bump, setBump] = useState({ n: 0, pts: 0 })
   const [board, setBoard] = useState<{ userId: string; username: string; score: number }[] | null>(null)
   const [boardOpen, setBoardOpen] = useState(false)
   const [myRank, setMyRank] = useState<{ rank: number; score: number } | null>(null)
@@ -121,18 +126,25 @@ function Quiz({ state }: { state: State }) {
   // `answers` only exists for questions answered this session.
   const correctCount = state.solved ?? questions.filter((q) => answers[q.id]?.answerIndex === picks[q.id]).length
 
+  // Server-side start of the speed clock: stamp the first render of each
+  // question so submitAnswer can scale the award by real elapsed time.
+  useEffect(() => {
+    if (!current) return
+    api('/api/shown', { questionId: current.id }).catch(() => {})
+  }, [current?.id])
+
   const answer = async (q: Question, choice: number) => {
     if (picks[q.id] !== undefined) return
     setPicks((p) => ({ ...p, [q.id]: choice }))
     try {
-      const res = await api<{ correct: boolean; answerIndex: number; link: string; score: number; streak: number }>(
+      const res = await api<{ correct: boolean; answerIndex: number; link: string; points: number; score: number; streak: number }>(
         '/api/answer',
         { questionId: q.id, choice }
       )
       setAnswers((a) => ({ ...a, [q.id]: { answerIndex: res.answerIndex, link: res.link } }))
       setScore(res.score)
       if (res.streak) setStreak(res.streak)
-      if (res.correct) setBump((b) => b + 1)
+      if (res.correct) setBump((b) => ({ n: b.n + 1, pts: res.points || 1 }))
     } catch {
       // already answered or offline — leave pick marked
     }
@@ -158,9 +170,9 @@ function Quiz({ state }: { state: State }) {
         <span className='scorewrap'>
           Score {score}
           {streak > 1 ? ` · ${streak}-set streak` : ''}
-          {bump > 0 && (
-            <em key={bump} className='plus'>
-              +1
+          {bump.n > 0 && (
+            <em key={bump.n} className='plus'>
+              +{bump.pts}
             </em>
           )}
         </span>

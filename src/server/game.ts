@@ -24,6 +24,21 @@ const scoreKey = (subId: string) => `st:score:${subId}`
 const streakKey = (uid: string) => `st:streak:${uid}`
 const nameKey = (uid: string) => `st:name:${uid}`
 const answerLockKey = (ck: string, uid: string, qid: string) => `st:anslock:${ck}:${uid}:${qid}`
+const shownKey = (ck: string, uid: string, qid: string) => `st:shown:${ck}:${uid}:${qid}`
+
+// Speed bonus: the first client view stamps a server-side clock, and the
+// award decays from FULL_PTS (<=8s) to FLOOR_PTS (>=20s). A lookup takes
+// long enough that it only ever earns the floor.
+const FULL_PTS = 100
+const FLOOR_PTS = 25
+const FULL_MS = 8_000
+const FLOOR_MS = 20_000
+const awardFor = (elapsed: number) =>
+  elapsed <= FULL_MS
+    ? FULL_PTS
+    : elapsed >= FLOOR_MS
+      ? FLOOR_PTS
+      : FULL_PTS - Math.round(((elapsed - FULL_MS) / (FLOOR_MS - FULL_MS)) * (FULL_PTS - FLOOR_PTS))
 
 export const todayUtc = () => new Date().toISOString().split('T')[0]
 export const weekKeyUtc = (d = new Date()) => {
@@ -146,6 +161,20 @@ export async function getState() {
   }
 }
 
+// Records when the client first rendered a question. nx: first stamp wins,
+// so it can't be reset just before answering.
+export async function markShown(questionId: string) {
+  const data = await getPostData()
+  const payload = await payloadFor(data)
+  if (!payload?.questions.some((q) => q.id === questionId)) return
+  await redis
+    .set(shownKey(contentKey(data), userId(), questionId), String(Date.now()), {
+      nx: true,
+      expiration: new Date(Date.now() + 8 * 86_400_000)
+    })
+    .catch(() => null)
+}
+
 export async function submitAnswer(questionId: string, choice: number) {
   const data = await getPostData()
   const payload = await payloadFor(data)
@@ -175,7 +204,13 @@ export async function submitAnswer(questionId: string, choice: number) {
 
   const correct = choice === question.answerIndex
   await redis.hSet(picksKey(ck, uid), { [questionId]: String(choice) })
-  if (correct) await redis.hIncrBy(scoreKey(subId()), uid, 1).catch(() => {})
+  let points = 0
+  if (correct) {
+    const shown = Number(await redis.get(shownKey(ck, uid, questionId)).catch(() => null)) || 0
+    // Missing stamp (unstamped view) can't verify speed: scores at the floor.
+    points = awardFor(shown ? Date.now() - shown : Number.POSITIVE_INFINITY)
+    await redis.hIncrBy(scoreKey(subId()), uid, points).catch(() => {})
+  }
 
   // Streak: increments when the set is fully answered with all correct.
   const picks = (await redis.hGetAll(picksKey(ck, uid)).catch(() => null)) || {}
@@ -193,7 +228,7 @@ export async function submitAnswer(questionId: string, choice: number) {
   }
 
   const score = await redis.hGet(scoreKey(subId()), uid).catch(() => null)
-  return { correct, answerIndex: question.answerIndex, link: question.link, score: Number(score) || 0, streak }
+  return { correct, answerIndex: question.answerIndex, link: question.link, points, score: Number(score) || 0, streak }
 }
 
 export async function getLeaderboard() {

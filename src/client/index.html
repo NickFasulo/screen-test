@@ -82,6 +82,15 @@
         position: absolute; top: -10px; width: 6px; height: 10px; border-radius: 2px;
         animation: drop 1.7s ease-in forwards;
       }
+      /* Speed bonus meter: matches the server's 8s full-award window then
+         drains to the 25pt floor over the remaining 12s of the decay curve. */
+      .bonustrack { height: 3px; background: #2e2466; border-radius: 2px; margin-bottom: 12px; overflow: hidden; }
+      .bonusfill {
+        height: 100%; border-radius: 2px; transform-origin: left;
+        background: linear-gradient(90deg, #ffc947 60%, #ff4d8d);
+        animation: drain 20s linear forwards;
+      }
+      @keyframes drain { 0%, 40% { transform: scaleX(1); } 100% { transform: scaleX(0.25); } }
       .qcard { animation: qin 0.3s ease both; }
       .qcard.exit {
         position: absolute; top: 0; left: 0; right: 0;
