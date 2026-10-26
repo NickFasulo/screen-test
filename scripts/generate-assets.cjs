@@ -172,7 +172,7 @@ async function main() {
     encoder.width = 1500
     encoder.height = 1000
     encoder.frameRate = 24
-    encoder.kbps = 2500
+    encoder.quantizationParameter = 18
     encoder.speed = 4
     encoder.groupOfPictures = 24
     encoder.initialize()
