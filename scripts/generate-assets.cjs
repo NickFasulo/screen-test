@@ -102,8 +102,8 @@ const badge = (cx, cy, r) => `
   ${bulbRing(cx, cy, r * 0.84, r * 0.24, r * 0.072)}
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="url(#disc)" stroke="#0e0a26" stroke-width="${r * 0.02}"/>
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="#5a44a8" stroke-width="${r * 0.012}" opacity="0.8"/>
-  <text x="${cx}" y="${cy + r * 0.23}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="#0b0820">?</text>
-  <text x="${cx}" y="${cy + r * 0.21}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="${WHITE}">?</text>`
+  <text x="${cx}" y="${cy + r * 0.3}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="#0b0820">?</text>
+  <text x="${cx}" y="${cy + r * 0.28}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="${WHITE}">?</text>`
 
 const beams = (w, h, targetX, targetY) => `
   <polygon points="${w * 0.06},0 ${w * 0.2},0 ${targetX + w * 0.09},${targetY} ${targetX - w * 0.03},${targetY}" fill="${CYAN}" opacity="0.09"/>
