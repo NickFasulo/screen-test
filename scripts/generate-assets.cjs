@@ -28,8 +28,8 @@ const DEFS = `<defs>
     <stop offset="100%" stop-color="#1b1440"/>
   </radialGradient>
   <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-    <stop offset="0%" stop-color="#ffc947" stop-opacity="0.32"/>
-    <stop offset="60%" stop-color="#ffc947" stop-opacity="0.12"/>
+    <stop offset="0%" stop-color="#ffc947" stop-opacity="0.5"/>
+    <stop offset="55%" stop-color="#ffc947" stop-opacity="0.2"/>
     <stop offset="100%" stop-color="#ffc947" stop-opacity="0"/>
   </radialGradient>
   <radialGradient id="vign" cx="50%" cy="50%" r="72%">
@@ -59,7 +59,7 @@ const bulb = (x, y, r, level) => {
   return (
     socket +
     (level === 1 ? dome : '') +
-    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.1).toFixed(1)}" fill="url(#halo)" opacity="${0.5 * o}"/>` +
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.6).toFixed(1)}" fill="url(#halo)" opacity="${0.85 * o}"/>` +
     `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)" opacity="${o}"/>` +
     `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.3).toFixed(1)}" fill="#fffdf4" opacity="${0.9 * o}"/>`
   )
@@ -67,9 +67,10 @@ const bulb = (x, y, r, level) => {
 
 const chase = (i) => [2, 1, 0][i % 3]
 
-// Ring of chase-wired bulbs around (cx, cy) at radius r.
+// Ring of chase-wired bulbs around (cx, cy) at radius r. n is snapped to a
+// multiple of 3 so the lit -> half -> unlit cycle wraps without a seam.
 const bulbRing = (cx, cy, r, spacing, bulbR) => {
-  const n = Math.max(8, Math.round((2 * Math.PI * r) / spacing))
+  const n = Math.max(9, Math.round((2 * Math.PI * r) / spacing / 3) * 3)
   const out = []
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 - Math.PI / 2
@@ -78,11 +79,19 @@ const bulbRing = (cx, cy, r, spacing, bulbR) => {
   return out.join('')
 }
 
-// Chase bulbs along the inside edge of a WxH rect at (x, y).
+// Exactly n chase bulbs evenly spaced along the rect perimeter.
 const bulbRect = (x, y, w, h, spacing, bulbR) => {
+  const P = 2 * (w + h)
+  const n = Math.max(6, Math.round(P / spacing / 3) * 3)
+  const s = P / n
   const pts = []
-  for (let px = x; px <= x + w; px += spacing) pts.push([px, y], [px, y + h])
-  for (let py = y + spacing; py <= y + h - spacing / 2; py += spacing) pts.push([x, py], [x + w, py])
+  for (let i = 0; i < n; i++) {
+    let d = i * s
+    if (d < w) pts.push([x + d, y])
+    else if ((d -= w) < h) pts.push([x + w, y + d])
+    else if ((d -= h) < w) pts.push([x + w - d, y + h])
+    else pts.push([x, y + h - (d - w)])
+  }
   return pts.map(([px, py], i) => bulb(px, py, bulbR, chase(i))).join('')
 }
 
