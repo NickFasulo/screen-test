@@ -172,8 +172,8 @@ async function main() {
     encoder.width = 1500
     encoder.height = 1000
     encoder.frameRate = 24
-    encoder.quantizationParameter = 18
-    encoder.speed = 4
+    encoder.quantizationParameter = 17
+    encoder.speed = 2
     encoder.groupOfPictures = 24
     encoder.initialize()
     const FRAMES = 192
