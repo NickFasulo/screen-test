@@ -119,6 +119,7 @@ function Quiz({ state }: { state: State }) {
   const [score, setScore] = useState(state.score || 0)
   const [streak, setStreak] = useState(state.streak || 0)
   const [bump, setBump] = useState({ n: 0, pts: 0 })
+  const [sessionPts, setSessionPts] = useState(0)
   const [board, setBoard] = useState<{ userId: string; username: string; score: number }[] | null>(null)
   const [boardOpen, setBoardOpen] = useState(false)
   const [myRank, setMyRank] = useState<{ rank: number; score: number } | null>(null)
@@ -147,7 +148,10 @@ function Quiz({ state }: { state: State }) {
       setAnswers((a) => ({ ...a, [q.id]: { answerIndex: res.answerIndex, link: res.link } }))
       setScore(res.score)
       if (res.streak) setStreak(res.streak)
-      if (res.correct) setBump((b) => ({ n: b.n + 1, pts: res.points || 1 }))
+      if (res.correct) {
+        setBump((b) => ({ n: b.n + 1, pts: res.points || 1 }))
+        setSessionPts((p) => p + res.points)
+      }
     } catch {
       // already answered or offline — leave pick marked
     }
@@ -223,6 +227,9 @@ function Quiz({ state }: { state: State }) {
           <div className='brand'>Cut. That's a wrap.</div>
           <div className='score-big'>
             {correctCount}/{questions.length}
+          </div>
+          <div className='sub'>
+            Score {score} pts{sessionPts > 0 ? ` (+${sessionPts} this set)` : ''}
           </div>
           <div className='sub'>{streak > 1 ? `${streak} perfect sets in a row` : 'New quiz drops on your sub’s post days'}</div>
           <button
