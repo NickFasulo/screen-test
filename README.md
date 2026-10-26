@@ -40,4 +40,4 @@ is shown in every post.
 - `npm run typecheck` / `npm test` — tsc + vitest (question-builder tests)
 - `npm run dev` — `devvit playtest` against `screen_test_dev`
 - `npm run upload` — upload a version to the Developer Portal
-- `node scripts/generate-assets.cjs` — regenerate the directory-listing PNGs
+- `node scripts/generate-assets.cjs` — regenerate the directory-listing PNGs (`--video` also writes `devvit-featuring-1500x1000.mp4`, a 4s chase-light loop for the featuring slot)

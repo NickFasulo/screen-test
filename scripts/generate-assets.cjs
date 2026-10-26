@@ -58,7 +58,8 @@ const DEFS = `<defs>
 
 // One marquee bulb: metal socket + glass dome + specular highlight.
 // level: 2 lit, 1 half-lit, 0 unlit — wired as a fading chase.
-const bulb = (x, y, r, level) => {
+// glow scales halo strength (used for the video pulse).
+const bulb = (x, y, r, level, glow = 1) => {
   const socket = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 1.35).toFixed(1)}" fill="#241c10" stroke="#4d3b1a" stroke-width="${(r * 0.18).toFixed(1)}"/>`
   const dome = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#4a3a20"/>` +
     `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.24).toFixed(1)}" fill="#8a7440" opacity="0.45"/>`
@@ -73,7 +74,7 @@ const bulb = (x, y, r, level) => {
   return (
     socket +
     (level === 1 ? dome : '') +
-    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.9).toFixed(1)}" fill="url(#halo)" opacity="${o}"/>` +
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.9).toFixed(1)}" fill="url(#halo)" opacity="${Math.min(1, o * glow)}"/>` +
     `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)" opacity="${o}"/>` +
     `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.3).toFixed(1)}" fill="#fffdf4" opacity="${0.9 * o}"/>`
   )
@@ -93,8 +94,9 @@ const bulbRing = (cx, cy, r, spacing, bulbR) => {
   return out.join('')
 }
 
-// Exactly n chase bulbs evenly spaced along the rect perimeter.
-const bulbRect = (x, y, w, h, spacing, bulbR) => {
+// Exactly n chase bulbs evenly spaced along the rect perimeter. `phase`
+// shifts the chase cycle (video frames); `glow` scales halo strength.
+const bulbRect = (x, y, w, h, spacing, bulbR, phase = 0, glow = 1) => {
   const P = 2 * (w + h)
   const n = Math.max(6, Math.round(P / spacing / 3) * 3)
   const s = P / n
@@ -106,7 +108,7 @@ const bulbRect = (x, y, w, h, spacing, bulbR) => {
     else if ((d -= h) < w) pts.push([x + w - d, y + h])
     else pts.push([x, y + h - (d - w)])
   }
-  return pts.map(([px, py], i) => bulb(px, py, bulbR, chase(i))).join('')
+  return pts.map(([px, py], i) => bulb(px, py, bulbR, chase(i + phase), glow)).join('')
 }
 
 // The medallion: brass-rimmed plate, bulb ring, inset disc, "?".
@@ -139,11 +141,11 @@ ${txt('DAILY FILM & TV TRIVIA', 280, 174, 17, CYAN, 0.16)}
 ${vignette(560, 256)}
 </svg>`
 
-const featuring = `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg">
+const featuringSvg = (phase = 0, glow = 1) => `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="1500" height="1000" fill="url(#bgGlow)"/>
 <rect x="30" y="95" width="1440" height="810" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
-${bulbRect(64, 129, 1372, 742, 48, 14)}
+${bulbRect(64, 129, 1372, 742, 48, 14, phase, glow)}
 ${txt('SCREEN TEST', 750, 440, 100, WHITE, 0.1)}
 <rect x="570" y="505" width="360" height="6" rx="3" fill="${PINK}"/>
 ${txt('The daily movie & TV trivia game', 750, 590, 40, '#cbd0e8')}
@@ -154,11 +156,44 @@ ${vignette(1500, 1000)}
 async function main() {
   await sharp(Buffer.from(icon)).png().toFile(path.join(OUT, 'devvit-icon-512.png'))
   await sharp(Buffer.from(tile)).png().toFile(path.join(OUT, 'devvit-tile-560x256.png'))
-  await sharp(Buffer.from(featuring)).png().toFile(path.join(OUT, 'devvit-featuring-1500x1000.png'))
+  await sharp(Buffer.from(featuringSvg())).png().toFile(path.join(OUT, 'devvit-featuring-1500x1000.png'))
   // The form's optional "fallback asset" is the static stand-in for a video
   // featuring asset — the same art works.
-  await sharp(Buffer.from(featuring)).png().toFile(path.join(OUT, 'devvit-fallback-1500x1000.png'))
+  await sharp(Buffer.from(featuringSvg())).png().toFile(path.join(OUT, 'devvit-fallback-1500x1000.png'))
   console.log('wrote assets/')
+
+  // --video: 4s seamless loop for the featuring slot (the only one that
+  // accepts video). Chase steps every ~0.33s like a real marquee; halos
+  // pulse gently.
+  if (process.argv.includes('--video')) {
+    const fs = require('fs')
+    const HME = require('h264-mp4-encoder')
+    const encoder = await HME.createH264MP4Encoder()
+    encoder.width = 1500
+    encoder.height = 1000
+    encoder.frameRate = 30
+    encoder.kbps = 12000
+    encoder.speed = 8
+    encoder.initialize()
+    const FRAMES = 120
+    for (let f = 0; f < FRAMES; f++) {
+      const phase = Math.floor(f / 10) % 3
+      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 2 * f) / FRAMES)
+      const { data } = await sharp(Buffer.from(featuringSvg(phase, glow)))
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+      encoder.addFrameRgba(new Uint8Array(data.buffer, data.byteOffset, data.byteLength))
+      if (f % 30 === 0) console.log(`frame ${f}/${FRAMES}`)
+    }
+    encoder.finalize()
+    fs.writeFileSync(
+      path.join(OUT, 'devvit-featuring-1500x1000.mp4'),
+      Buffer.from(encoder.FS.readFile(encoder.outputFilename)),
+    )
+    encoder.delete()
+    console.log('wrote devvit-featuring-1500x1000.mp4')
+  }
 }
 
 main().catch((e) => {
