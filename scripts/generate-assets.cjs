@@ -144,8 +144,8 @@ ${DEFS}
 ${bulbRect(64, 129, 1372, 742, 48, 14)}
 <text x="750" y="440" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="100" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
 <rect x="570" y="505" width="360" height="6" rx="3" fill="${PINK}"/>
-<text x="750" y="572" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
-<text x="750" y="640" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
+<text x="750" y="590" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
+<text x="750" y="656" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
 ${vignette(1500, 1000)}
 </svg>`
 
