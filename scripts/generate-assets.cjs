@@ -1,47 +1,112 @@
-// Renders the app-directory assets: gold-on-charcoal film-frame mark with a
-// question mark, same palette as the quiz webview. Usage: node scripts/generate-assets.js
+// Renders the app-directory assets: cinema-marquee "?" badge — neon pink/cyan
+// accents and warm bulbs on deep indigo. Usage: node scripts/generate-assets.cjs
 const sharp = require('sharp')
 const path = require('path')
 
 const OUT = path.join(__dirname, '..', 'assets')
-const GOLD = '#c9a227'
-const BG = '#14181c'
-const CARD = '#1a2028'
-const EDGE = '#2a3442'
+const PINK = '#ff4d8d'
+const CYAN = '#4dd8ff'
+const WHITE = '#f4f0ff'
+const INK = '#1b1440'
 
-const sprockets = (w, h) => {
-  const holes = []
-  const n = Math.floor(w / 64)
+const DEFS = `<defs>
+  <radialGradient id="bgGlow" cx="50%" cy="38%" r="85%">
+    <stop offset="0%" stop-color="#33207a"/>
+    <stop offset="55%" stop-color="#16103a"/>
+    <stop offset="100%" stop-color="#0a0820"/>
+  </radialGradient>
+  <radialGradient id="bulbA" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#fff3d0"/>
+    <stop offset="45%" stop-color="#ffc947"/>
+    <stop offset="100%" stop-color="#ffc947" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bulbP" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#ffe0ec"/>
+    <stop offset="45%" stop-color="${PINK}"/>
+    <stop offset="100%" stop-color="${PINK}" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bulbC" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#e0f6ff"/>
+    <stop offset="45%" stop-color="${CYAN}"/>
+    <stop offset="100%" stop-color="${CYAN}" stop-opacity="0"/>
+  </radialGradient>
+</defs>`
+
+// Ring of glowing marquee bulbs around (cx, cy) at radius r.
+const bulbRing = (cx, cy, r, n, bulbR) => {
+  const ids = ['bulbA', 'bulbP', 'bulbC']
+  const out = []
   for (let i = 0; i < n; i++) {
-    const x = 24 + i * 64
-    holes.push(`<rect x="${x}" y="16" width="28" height="20" rx="4" fill="${BG}"/>`)
-    holes.push(`<rect x="${x}" y="${h - 36}" width="28" height="20" rx="4" fill="${BG}"/>`)
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2
+    const x = cx + Math.cos(a) * r
+    const y = cy + Math.sin(a) * r
+    out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${bulbR}" fill="url(#${ids[i % ids.length]})"/>`)
   }
-  return holes.join('')
+  return out.join('')
 }
 
-const mark = (size) => `
-  <rect x="${size * 0.08}" y="${size * 0.08}" width="${size * 0.84}" height="${size * 0.84}" rx="${size * 0.1}" fill="${CARD}" stroke="${EDGE}" stroke-width="${size * 0.012}"/>
-  ${sprockets(size * 0.84, size * 0.84).replaceAll('x="24', `x="${size * 0.08 + 24}`).replaceAll('y="16', `y="${size * 0.08 + 16}`).replaceAll(`y="${size * 0.84 - 36}`, `y="${size * 0.08 + size * 0.84 - 36}`)}
-  <text x="${size * 0.5}" y="${size * 0.6}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${size * 0.52}" fill="${GOLD}">?</text>`
+// Bulbs along the inside edge of a WxH frame, inset by `pad`.
+const bulbFrame = (w, h, pad, spacing, bulbR) => {
+  const pts = []
+  for (let x = pad; x <= w - pad; x += spacing) pts.push([x, pad], [x, h - pad])
+  for (let y = pad + spacing; y <= h - pad - spacing / 2; y += spacing) pts.push([pad, y], [w - pad, y])
+  const ids = ['bulbA', 'bulbP', 'bulbC']
+  return pts
+    .map(([x, y], i) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${bulbR}" fill="url(#${ids[i % ids.length]})"/>`)
+    .join('')
+}
 
-const icon = `<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg"><rect width="512" height="512" rx="96" fill="${BG}"/>${mark(512)}</svg>`
+// The medallion: bulb ring + inner disc + big "?".
+const badge = (cx, cy, outerR) => `
+  <circle cx="${cx}" cy="${cy}" r="${outerR * 1.08}" fill="${INK}" opacity="0.85"/>
+  ${bulbRing(cx, cy, outerR, Math.max(10, Math.round(outerR / 9)), outerR * 0.055)}
+  <circle cx="${cx}" cy="${cy}" r="${outerR * 0.78}" fill="#241a55" stroke="#4a3590" stroke-width="${outerR * 0.02}"/>
+  <text x="${cx}" y="${cy + outerR * 0.42}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${outerR * 1.15}" fill="${WHITE}">?</text>`
 
-const tile = `<svg width="560" height="256" xmlns="http://www.w3.org/2000/svg"><rect width="560" height="256" fill="${BG}"/>
-<g transform="translate(28,28)">${mark(200)}</g>
-<text x="256" y="120" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="52" fill="#e2e8f0">Screen Test</text>
-<text x="258" y="168" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#94a3b8">daily film &amp; TV trivia</text></svg>`
+const beams = (w, h, targetX, targetY) => `
+  <polygon points="${w * 0.06},0 ${w * 0.2},0 ${targetX + w * 0.09},${targetY} ${targetX - w * 0.03},${targetY}" fill="${CYAN}" opacity="0.07"/>
+  <polygon points="${w * 0.8},0 ${w * 0.94},0 ${targetX + w * 0.03},${targetY} ${targetX - w * 0.09},${targetY}" fill="${PINK}" opacity="0.07"/>`
 
-const featuring = `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg"><rect width="1500" height="1000" fill="${BG}"/>
-<g transform="translate(630,240)">${mark(240)}</g>
-<text x="750" y="620" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="96" fill="#e2e8f0">Screen Test</text>
-<text x="750" y="700" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="#94a3b8">Daily film &amp; TV trivia for your community</text>
-<text x="750" y="780" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="${GOLD}">movies · shows · actors · directors</text></svg>`
+const FONT = 'Arial, Helvetica, sans-serif'
+
+const icon = `<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+${DEFS}
+<rect width="512" height="512" rx="104" fill="url(#bgGlow)"/>
+${beams(512, 512, 256, 350)}
+${badge(256, 232, 168)}
+<text x="256" y="452" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="34" letter-spacing="6" fill="${CYAN}">SCREEN TEST</text>
+</svg>`
+
+const tile = `<svg width="560" height="256" xmlns="http://www.w3.org/2000/svg">
+${DEFS}
+<rect width="560" height="256" fill="url(#bgGlow)"/>
+${bulbFrame(560, 256, 14, 56, 6)}
+${beams(560, 256, 120, 210)}
+${badge(104, 134, 72)}
+<text x="194" y="122" font-family="${FONT}" font-weight="bold" font-size="44" letter-spacing="1" fill="${WHITE}">SCREEN TEST</text>
+<rect x="196" y="140" width="316" height="4" rx="2" fill="${PINK}"/>
+<text x="196" y="180" font-family="${FONT}" font-size="19" letter-spacing="4" fill="${CYAN}">DAILY FILM &amp; TV TRIVIA</text>
+</svg>`
+
+const featuring = `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg">
+${DEFS}
+<rect width="1500" height="1000" fill="url(#bgGlow)"/>
+${beams(1500, 1000, 750, 640)}
+${bulbFrame(1500, 1000, 34, 64, 11)}
+${badge(750, 380, 190)}
+<text x="750" y="700" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="108" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
+<rect x="560" y="732" width="380" height="6" rx="3" fill="${PINK}"/>
+<text x="750" y="800" text-anchor="middle" font-family="${FONT}" font-size="42" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
+<text x="750" y="868" text-anchor="middle" font-family="${FONT}" font-size="28" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
+</svg>`
 
 async function main() {
   await sharp(Buffer.from(icon)).png().toFile(path.join(OUT, 'devvit-icon-512.png'))
   await sharp(Buffer.from(tile)).png().toFile(path.join(OUT, 'devvit-tile-560x256.png'))
   await sharp(Buffer.from(featuring)).png().toFile(path.join(OUT, 'devvit-featuring-1500x1000.png'))
+  // The form's optional "fallback asset" is the static stand-in for a video
+  // featuring asset — the same art works.
+  await sharp(Buffer.from(featuring)).png().toFile(path.join(OUT, 'devvit-fallback-1500x1000.png'))
   console.log('wrote assets/')
 }
 
