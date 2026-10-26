@@ -11,6 +11,7 @@ const OUT = path.join(__dirname, '..', 'assets')
 const PINK = '#ff4d8d'
 const CYAN = '#4dd8ff'
 const WHITE = '#f4f0ff'
+const AMBER = '#ffc947'
 const INK = '#15102e'
 
 const tts = TextToSVG.loadSync(path.join(__dirname, 'fonts', 'Righteous-Regular.ttf'))
@@ -119,7 +120,7 @@ const badge = (cx, cy, r) => `
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="url(#disc)" stroke="#0e0a26" stroke-width="${r * 0.02}"/>
   <circle cx="${cx}" cy="${cy}" r="${r * 0.62}" fill="none" stroke="#5a44a8" stroke-width="${r * 0.012}" opacity="0.8"/>
   ${txtMid('?', cx + r * 0.025, cy + r * 0.03, r * 0.86, '#0b0820')}
-  ${txtMid('?', cx + r * 0.025, cy, r * 0.86, WHITE)}`
+  ${txtMid('?', cx + r * 0.025, cy, r * 0.86, AMBER)}`
 
 const vignette = (w, h) => `<rect width="${w}" height="${h}" fill="url(#vign)"/>`
 
@@ -135,7 +136,7 @@ ${DEFS}
 <rect width="560" height="256" fill="url(#bgGlow)"/>
 <rect x="12" y="12" width="536" height="232" rx="20" fill="none" stroke="url(#brass)" stroke-width="6"/>
 ${bulbRect(32, 32, 496, 192, 28, 8)}
-${txt('SCREEN TEST', 280, 118, 40, WHITE, 0.04)}
+${txt('SCREEN TEST', 280, 118, 40, AMBER, 0.04)}
 <rect x="180" y="140" width="200" height="4" rx="2" fill="${PINK}"/>
 ${txt('DAILY FILM & TV TRIVIA', 280, 174, 17, CYAN, 0.16)}
 ${vignette(560, 256)}
@@ -146,7 +147,7 @@ ${DEFS}
 <rect width="1500" height="1000" fill="url(#bgGlow)"/>
 <rect x="30" y="95" width="1440" height="810" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
 ${bulbRect(64, 129, 1372, 742, 48, 14, phase, glow)}
-${txt('SCREEN TEST', 750, 440, 100, WHITE, 0.1)}
+${txt('SCREEN TEST', 750, 440, 100, AMBER, 0.1)}
 <rect x="570" y="505" width="360" height="6" rx="3" fill="${PINK}"/>
 ${txt('The daily movie & TV trivia game', 750, 590, 40, '#cbd0e8')}
 ${txt("WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED", 750, 656, 26, CYAN, 0.18)}
