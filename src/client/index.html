@@ -66,7 +66,9 @@
          smoothly without measuring heights in JS. */
       .boardwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s ease; }
       .boardwrap.open { grid-template-rows: 1fr; }
-      .boardinner { overflow: hidden; min-height: 0; }
+      /* Max 10 rows can exceed the 512px inline frame — scroll inside the
+         region so the card itself never overflows. */
+      .boardinner { overflow: hidden auto; min-height: 0; max-height: 236px; }
       .stage { position: relative; }
       .scorewrap { position: relative; }
       .plus {
