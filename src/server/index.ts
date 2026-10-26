@@ -69,8 +69,14 @@ app.post('/internal/scheduler/weekly-spotlight', async (c) => {
 // ---------- menu + external triggers ----------
 
 const menuHandler = (fn: () => Promise<Result>) => async (c: { json: (b: unknown, s: number) => Response }) => {
-  const result = await fn()
-  return c.json({ showToast: `${result.status}${result.detail ? `: ${result.detail}` : ''}` } satisfies UiResponse, 200)
+  try {
+    const result = await fn()
+    console.log('menu:', JSON.stringify(result))
+    return c.json({ showToast: `${result.status}${result.detail ? `: ${result.detail}` : ''}` } satisfies UiResponse, 200)
+  } catch (e) {
+    console.error('menu error:', e)
+    return c.json({ showToast: `error: ${e instanceof Error ? e.message : String(e)}` } satisfies UiResponse, 200)
+  }
 }
 
 const externalHandler = (fn: () => Promise<Result>) => async (c: { json: (b: unknown, s: number) => Response }) => {
