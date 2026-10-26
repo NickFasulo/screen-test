@@ -223,7 +223,7 @@ async function main() {
       if (!palette) palette = quantize(data, TIDX)
       const idx = applyPalette(data, palette, 'rgba')
       if (!prev) {
-        gif.writeFrame(idx, W, H, { palette, delay: 8, repeat: 0 })
+        gif.writeFrame(idx, W, H, { palette, delay: 100, repeat: 0 })
       } else {
         const diff = new Uint8Array(idx.length)
         for (let i = 0; i < idx.length; i++) diff[i] = idx[i] === prev[i] ? TIDX : idx[i]
@@ -231,7 +231,7 @@ async function main() {
           palette: palette.concat([[0, 0, 0]]),
           transparent: true,
           transparentIndex: TIDX,
-          delay: 8
+          delay: 100
         })
       }
       prev = idx
