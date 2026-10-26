@@ -171,14 +171,14 @@ async function main() {
     const encoder = await HME.createH264MP4Encoder()
     encoder.width = 1500
     encoder.height = 1000
-    encoder.frameRate = 30
-    encoder.kbps = 12000
+    encoder.frameRate = 24
+    encoder.kbps = 2600
     encoder.speed = 8
     encoder.initialize()
-    const FRAMES = 240
+    const FRAMES = 192
     for (let f = 0; f < FRAMES; f++) {
-      const phase = Math.floor(f / 10) % 3
-      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 4 * f) / FRAMES)
+      const phase = Math.floor(f / 8) % 3
+      const glow = 0.85 + 0.15 * Math.sin((2 * Math.PI * 3 * f) / FRAMES)
       const { data } = await sharp(Buffer.from(featuringSvg(phase, glow)))
         .ensureAlpha()
         .raw()
