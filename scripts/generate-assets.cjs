@@ -207,8 +207,26 @@ async function main() {
     const { GIFEncoder, quantize, applyPalette } = require('gifenc')
     const W = 1000
     const H = 667
-    const FRAMES = 48
+    const FRAMES = 36
     const TIDX = 255
+    // Ordered dither before palette mapping: a static Bayer pattern keeps the
+    // smooth gradient from banding into steps at 255 colors. It is spatially
+    // fixed, so unchanged regions still diff to transparent — no flicker.
+    const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => v / 16 - 0.5)
+    const dither = (data) => {
+      const d = new Uint8ClampedArray(data.length)
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const i = (y * W + x) * 4
+          const t = BAYER[(y % 4) * 4 + (x % 4)] * 14
+          d[i] = data[i] + t
+          d[i + 1] = data[i + 1] + t
+          d[i + 2] = data[i + 2] + t
+          d[i + 3] = data[i + 3]
+        }
+      }
+      return d
+    }
     const gif = GIFEncoder()
     let palette = null
     let prev = null
@@ -221,7 +239,7 @@ async function main() {
         .raw()
         .toBuffer({ resolveWithObject: true })
       if (!palette) palette = quantize(data, TIDX)
-      const idx = applyPalette(data, palette, 'rgba')
+      const idx = applyPalette(dither(data), palette, 'rgba')
       // dispose:1 (keep) is required for diff accumulation — an unspecified
       // disposal is treated as restore-to-background by some viewers, which
       // would flash the canvas between frames.
