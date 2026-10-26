@@ -111,10 +111,6 @@ const badge = (cx, cy, r) => `
   <text x="${cx}" y="${cy + r * 0.3}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="#0b0820">?</text>
   <text x="${cx}" y="${cy + r * 0.28}" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="${r * 0.86}" fill="${WHITE}">?</text>`
 
-const beams = (w, h, targetX, targetY) => `
-  <polygon points="${w * 0.06},0 ${w * 0.2},0 ${targetX + w * 0.09},${targetY} ${targetX - w * 0.03},${targetY}" fill="${CYAN}" opacity="0.09"/>
-  <polygon points="${w * 0.8},0 ${w * 0.94},0 ${targetX + w * 0.03},${targetY} ${targetX - w * 0.09},${targetY}" fill="${PINK}" opacity="0.09"/>`
-
 const vignette = (w, h) => `<rect width="${w}" height="${h}" fill="url(#vign)"/>`
 
 // Marquee sign panel: inset plate, brass rim, chase bulbs along the inner edge.
@@ -133,7 +129,6 @@ ${vignette(512, 512)}
 const tile = `<svg width="560" height="256" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="560" height="256" fill="url(#bgGlow)"/>
-${beams(560, 256, 120, 200)}
 ${sign(8, 8, 544, 240, 26, 10, 62, 7)}
 ${badge(122, 130, 88)}
 <text x="228" y="120" font-family="${FONT}" font-weight="bold" font-size="40" letter-spacing="1" fill="${WHITE}">SCREEN TEST</text>
@@ -145,13 +140,12 @@ ${vignette(560, 256)}
 const featuring = `<svg width="1500" height="1000" xmlns="http://www.w3.org/2000/svg">
 ${DEFS}
 <rect width="1500" height="1000" fill="url(#bgGlow)"/>
-${beams(1500, 1000, 750, 560)}
-${sign(140, 150, 1220, 660, 40, 14, 66, 12)}
-${badge(750, 400, 132)}
-<text x="750" y="592" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="92" letter-spacing="10" fill="${WHITE}">SCREEN TEST</text>
-<rect x="580" y="620" width="340" height="6" rx="3" fill="${PINK}"/>
-<text x="750" y="682" text-anchor="middle" font-family="${FONT}" font-size="38" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
-<text x="750" y="744" text-anchor="middle" font-family="${FONT}" font-size="25" letter-spacing="5" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
+<rect x="30" y="30" width="1440" height="940" rx="44" fill="none" stroke="url(#brass)" stroke-width="12"/>
+${bulbRect(64, 64, 1372, 872, 48, 14)}
+<text x="750" y="452" text-anchor="middle" font-family="${FONT}" font-weight="bold" font-size="100" letter-spacing="12" fill="${WHITE}">SCREEN TEST</text>
+<rect x="570" y="484" width="360" height="6" rx="3" fill="${PINK}"/>
+<text x="750" y="552" text-anchor="middle" font-family="${FONT}" font-size="40" fill="#cbd0e8">The daily movie &amp; TV trivia game</text>
+<text x="750" y="620" text-anchor="middle" font-family="${FONT}" font-size="26" letter-spacing="6" fill="${CYAN}">WHO DIRECTED IT · WHO'S IN IT · WHEN IT DROPPED</text>
 ${vignette(1500, 1000)}
 </svg>`
 
