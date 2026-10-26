@@ -20,27 +20,19 @@ const DEFS = `<defs>
     <stop offset="45%" stop-color="#ffc947"/>
     <stop offset="100%" stop-color="#ffc947" stop-opacity="0"/>
   </radialGradient>
-  <radialGradient id="bulbP" cx="50%" cy="50%" r="50%">
-    <stop offset="0%" stop-color="#ffe0ec"/>
-    <stop offset="45%" stop-color="${PINK}"/>
-    <stop offset="100%" stop-color="${PINK}" stop-opacity="0"/>
-  </radialGradient>
-  <radialGradient id="bulbC" cx="50%" cy="50%" r="50%">
-    <stop offset="0%" stop-color="#e0f6ff"/>
-    <stop offset="45%" stop-color="${CYAN}"/>
-    <stop offset="100%" stop-color="${CYAN}" stop-opacity="0"/>
-  </radialGradient>
 </defs>`
 
-// Ring of glowing marquee bulbs around (cx, cy) at radius r.
+// All-warm marquee bulbs; every 3rd is dim to suggest a chaser pattern.
 const bulbRing = (cx, cy, r, n, bulbR) => {
-  const ids = ['bulbA', 'bulbP', 'bulbC']
   const out = []
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 - Math.PI / 2
     const x = cx + Math.cos(a) * r
     const y = cy + Math.sin(a) * r
-    out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${bulbR}" fill="url(#${ids[i % ids.length]})"/>`)
+    const dim = i % 3 === 2
+    out.push(
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${bulbR}" fill="${dim ? '#4a3a20' : 'url(#bulbA)'}"/>`,
+    )
   }
   return out.join('')
 }
@@ -50,9 +42,11 @@ const bulbFrame = (w, h, pad, spacing, bulbR) => {
   const pts = []
   for (let x = pad; x <= w - pad; x += spacing) pts.push([x, pad], [x, h - pad])
   for (let y = pad + spacing; y <= h - pad - spacing / 2; y += spacing) pts.push([pad, y], [w - pad, y])
-  const ids = ['bulbA', 'bulbP', 'bulbC']
   return pts
-    .map(([x, y], i) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${bulbR}" fill="url(#${ids[i % ids.length]})"/>`)
+    .map(
+      ([x, y], i) =>
+        `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${bulbR}" fill="${i % 3 === 2 ? '#4a3a20' : 'url(#bulbA)'}"/>`,
+    )
     .join('')
 }
 
