@@ -79,23 +79,26 @@ function QuestionCard({
           </button>
         )
       })}
-      {revealed && (
-        <a
-          className='link'
-          href={revealed.link}
-          onClick={(e) => {
-            e.preventDefault()
-            navigateTo(revealed.link)
-          }}
-        >
-          More on this title →
-        </a>
-      )}
-      {picked !== undefined && (
-        <button className='primary next' onClick={onNext}>
-          {isLast ? 'See results →' : 'Next →'}
-        </button>
-      )}
+      <div className={`revealwrap${picked !== undefined ? ' open' : ''}`}>
+        <div className='revealinner'>
+          {/* Link reserves its height before the answer response lands so the
+              card expands once instead of jumping twice. */}
+          <a
+            className='link'
+            href={revealed?.link ?? '#'}
+            style={{ visibility: revealed ? 'visible' : 'hidden' }}
+            onClick={(e) => {
+              e.preventDefault()
+              if (revealed) navigateTo(revealed.link)
+            }}
+          >
+            More on this title
+          </a>
+          <button className='primary next' onClick={onNext} disabled={picked === undefined}>
+            {isLast ? 'See results' : 'Next'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -301,7 +304,7 @@ function App() {
                 }
               }}
             >
-              ⤢ Fullscreen
+              Fullscreen
             </button>
           )}
         </div>

@@ -91,6 +91,11 @@
         animation: drain 20s linear forwards;
       }
       @keyframes drain { 0%, 40% { transform: scaleX(1); } 100% { transform: scaleX(0.25); } }
+      /* Reveal zone (link + Next): grid-rows transition expands it smoothly
+         instead of the button popping in and growing the card instantly. */
+      .revealwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+      .revealwrap.open { grid-template-rows: 1fr; }
+      .revealinner { overflow: hidden; min-height: 0; }
       .qcard { animation: qin 0.3s ease both; }
       .qcard.exit {
         position: absolute; top: 0; left: 0; right: 0;
@@ -104,10 +109,10 @@
       @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
       @keyframes floatup { 0% { opacity: 0; transform: translateY(2px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
       @keyframes drop { to { transform: translateY(340px) rotate(540deg); } }
-      .next { margin-top: 4px; animation: rise 0.25s ease both; }
+      .next { margin-top: 4px; }
       @media (prefers-reduced-motion: reduce) {
         .qcard, .qcard.exit, .opt.correct, .opt.wrong, .next, .plus, .done, .score-big, .row { animation: none !important; }
-        .boardwrap { transition: none; }
+        .boardwrap, .revealwrap { transition: none; }
         .confetti { display: none; }
       }
       .footer { color: #6f6aa0; font-size: 11px; text-align: center; margin-top: 14px; }
