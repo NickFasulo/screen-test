@@ -161,7 +161,11 @@ function Quiz({ state }: { state: State }) {
   }
 
   if (!questions.length) {
-    return <div className='card'>No quiz data. Check back soon.</div>
+    return (
+      <div className='quizzone'>
+        <div className='card'>No quiz data. Check back soon.</div>
+      </div>
+    )
   }
 
   return (
@@ -180,7 +184,8 @@ function Quiz({ state }: { state: State }) {
           )}
         </span>
       </div>
-      <div className='stage'>
+      <div className='quizzone'>
+        <div className='stage'>
         {leaving && (
           <QuestionCard
             q={leaving}
@@ -205,9 +210,9 @@ function Quiz({ state }: { state: State }) {
             onNext={advance}
           />
         )}
-      </div>
-      {done && (
-        <div className='card center done'>
+        </div>
+        {done && (
+          <div className='card center done'>
           {correctCount === questions.length && (
             <div className='confetti' aria-hidden>
               {CONFETTI.map((s, i) => (
@@ -260,8 +265,9 @@ function Quiz({ state }: { state: State }) {
               )}
             </div>
           </div>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </>
   )
 }

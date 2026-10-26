@@ -22,9 +22,11 @@
         max-width: 560px; margin: 0 auto; padding: 12px 14px 18px;
         min-height: 100vh; display: flex; flex-direction: column;
       }
-      /* Centers the game vertically in the post viewport; "safe" keeps the
-         top reachable if content ever exceeds the frame height. */
-      .main { flex: 1; display: flex; flex-direction: column; justify-content: safe center; }
+      .main { flex: 1; display: flex; flex-direction: column; }
+      /* Header (brand, title, sub, meta) stays top-pinned; only the card
+         region centers in the leftover space, so card growth can't shift
+         the header. "safe" keeps the card top reachable on short frames. */
+      .quizzone { flex: 1; display: flex; flex-direction: column; justify-content: safe center; min-height: 0; }
       .top { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 4px; }
       .brand { color: #ffc947; font-family: 'Righteous', sans-serif; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
       .expand {
