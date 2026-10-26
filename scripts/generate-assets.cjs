@@ -49,22 +49,31 @@ const DEFS = `<defs>
 </defs>`
 
 // One marquee bulb: metal socket + glass dome + specular highlight.
-const bulb = (x, y, r, lit) =>
-  `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 1.35).toFixed(1)}" fill="#241c10" stroke="#4d3b1a" stroke-width="${(r * 0.18).toFixed(1)}"/>` +
-  (lit
-    ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.1).toFixed(1)}" fill="url(#halo)"/>` +
-      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)"/>` +
-      `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.3).toFixed(1)}" fill="#fffdf4" opacity="0.9"/>`
-    : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#4a3a20"/>` +
-      `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.24).toFixed(1)}" fill="#8a7440" opacity="0.45"/>`)
+// level: 2 lit, 1 half-lit, 0 unlit — wired as a fading chase.
+const bulb = (x, y, r, level) => {
+  const socket = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 1.35).toFixed(1)}" fill="#241c10" stroke="#4d3b1a" stroke-width="${(r * 0.18).toFixed(1)}"/>`
+  const dome = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#4a3a20"/>` +
+    `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.24).toFixed(1)}" fill="#8a7440" opacity="0.45"/>`
+  if (level === 0) return socket + dome
+  const o = level === 1 ? 0.5 : 1
+  return (
+    socket +
+    (level === 1 ? dome : '') +
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r * 2.1).toFixed(1)}" fill="url(#halo)" opacity="${0.5 * o}"/>` +
+    `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="url(#bulbA)" opacity="${o}"/>` +
+    `<circle cx="${(x - r * 0.34).toFixed(1)}" cy="${(y - r * 0.36).toFixed(1)}" r="${(r * 0.3).toFixed(1)}" fill="#fffdf4" opacity="${0.9 * o}"/>`
+  )
+}
 
-// Ring of chase-wired bulbs (every 3rd dim) around (cx, cy) at radius r.
+const chase = (i) => [2, 1, 0][i % 3]
+
+// Ring of chase-wired bulbs around (cx, cy) at radius r.
 const bulbRing = (cx, cy, r, spacing, bulbR) => {
   const n = Math.max(8, Math.round((2 * Math.PI * r) / spacing))
   const out = []
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 - Math.PI / 2
-    out.push(bulb(cx + Math.cos(a) * r, cy + Math.sin(a) * r, bulbR, i % 3 !== 2))
+    out.push(bulb(cx + Math.cos(a) * r, cy + Math.sin(a) * r, bulbR, chase(i)))
   }
   return out.join('')
 }
@@ -74,7 +83,7 @@ const bulbRect = (x, y, w, h, spacing, bulbR) => {
   const pts = []
   for (let px = x; px <= x + w; px += spacing) pts.push([px, y], [px, y + h])
   for (let py = y + spacing; py <= y + h - spacing / 2; py += spacing) pts.push([x, py], [x + w, py])
-  return pts.map(([px, py], i) => bulb(px, py, bulbR, i % 3 !== 2)).join('')
+  return pts.map(([px, py], i) => bulb(px, py, bulbR, chase(i))).join('')
 }
 
 // The medallion: brass-rimmed plate, bulb ring, inset disc, "?".
