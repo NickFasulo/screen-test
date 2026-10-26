@@ -112,6 +112,7 @@ function Quiz({ state }: { state: State }) {
   const [streak, setStreak] = useState(state.streak || 0)
   const [bump, setBump] = useState(0)
   const [board, setBoard] = useState<{ userId: string; username: string; score: number }[] | null>(null)
+  const [boardOpen, setBoardOpen] = useState(false)
 
   const current = index < questions.length ? questions[index] : undefined
   const done = !current && questions.length > 0
@@ -203,21 +204,37 @@ function Quiz({ state }: { state: State }) {
             {correctCount}/{questions.length}
           </div>
           <div className='sub'>{streak > 1 ? `${streak} perfect sets in a row` : 'New quiz drops on your sub’s post days'}</div>
-          <button className='primary' onClick={() => api<{ rows: { userId: string; username: string; score: number }[] }>('/api/leaderboard').then((r) => setBoard(r.rows))}>
-            Show leaderboard
+          <button
+            className='primary'
+            onClick={() => {
+              if (board) {
+                setBoardOpen((o) => !o)
+                return
+              }
+              api<{ rows: { userId: string; username: string; score: number }[] }>('/api/leaderboard').then((r) => {
+                setBoard(r.rows)
+                setBoardOpen(true)
+              })
+            }}
+          >
+            {boardOpen ? 'Hide leaderboard' : 'Show leaderboard'}
           </button>
-          {board && (
-            <div style={{ marginTop: 14 }}>
-              {board.map((r, i) => (
-                <div className='row' key={r.userId}>
-                  <span>
-                    #{i + 1} u/{r.username}
-                  </span>
-                  <span>{r.score} pts</span>
+          <div className={`boardwrap${boardOpen ? ' open' : ''}`}>
+            <div className='boardinner'>
+              {board && (
+                <div style={{ marginTop: 14 }}>
+                  {board.map((r, i) => (
+                    <div className='row' key={r.userId} style={{ animationDelay: `${i * 40}ms` }}>
+                      <span>
+                        #{i + 1} u/{r.username}
+                      </span>
+                      <span>{r.score} pts</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </>

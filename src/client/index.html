@@ -41,7 +41,7 @@
         display: block; width: 100%; text-align: center; cursor: pointer;
         background: #262058; color: #f4f0ff; border: 1px solid #3d2f78;
         border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 6px; line-height: 1.3;
-        transition: border-color 0.15s, background 0.15s, transform 0.08s;
+        transition: border-color 0.25s, background-color 0.25s, transform 0.08s;
       }
       .opt:hover:not(:disabled) { border-color: #ffc947; background: #2d2670; }
       .opt:active:not(:disabled) { transform: scale(0.98); }
@@ -54,11 +54,19 @@
       .primary {
         background: #ffc947; color: #241c10; border: none; border-radius: 10px;
         padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%;
+        transition: filter 0.15s, transform 0.08s;
       }
+      .primary:hover:not(:disabled) { filter: brightness(1.07); }
+      .primary:active:not(:disabled) { transform: scale(0.98); }
       .primary:disabled { opacity: 0.5; cursor: default; }
       .score-big { font-family: 'Righteous', sans-serif; font-size: 30px; color: #ffc947; animation: pop 0.45s ease 0.1s both; }
       .center { text-align: center; }
-      .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #2e2466; font-size: 14px; }
+      .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #2e2466; font-size: 14px; animation: rise 0.25s ease both; }
+      /* Animated expand/collapse: grid rows transition lets the card grow
+         smoothly without measuring heights in JS. */
+      .boardwrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s ease; }
+      .boardwrap.open { grid-template-rows: 1fr; }
+      .boardinner { overflow: hidden; min-height: 0; }
       .stage { position: relative; }
       .scorewrap { position: relative; }
       .plus {
@@ -86,7 +94,8 @@
       @keyframes drop { to { transform: translateY(340px) rotate(540deg); } }
       .next { margin-top: 4px; animation: rise 0.25s ease both; }
       @media (prefers-reduced-motion: reduce) {
-        .qcard, .qcard.exit, .opt.correct, .opt.wrong, .next, .plus, .done, .score-big { animation: none !important; }
+        .qcard, .qcard.exit, .opt.correct, .opt.wrong, .next, .plus, .done, .score-big, .row { animation: none !important; }
+        .boardwrap { transition: none; }
         .confetti { display: none; }
       }
       .footer { color: #6f6aa0; font-size: 11px; text-align: center; margin-top: 14px; }
