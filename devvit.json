@@ -11,30 +11,7 @@
   },
   "server": {
     "dir": "dist/server",
-    "entry": "index.cjs",
-    "externalEndpoints": {
-      "quiz-now": {
-        "endpoint": "/external/quiz-now",
-        "scopes": [
-          "install",
-          "global"
-        ]
-      },
-      "spotlight-now": {
-        "endpoint": "/external/spotlight-now",
-        "scopes": [
-          "install",
-          "global"
-        ]
-      },
-      "pool-refresh-now": {
-        "endpoint": "/external/pool-refresh-now",
-        "scopes": [
-          "install",
-          "global"
-        ]
-      }
-    }
+    "entry": "index.cjs"
   },
   "permissions": {
     "reddit": true,
@@ -129,6 +106,13 @@
         "forUserType": "moderator",
         "location": "subreddit",
         "endpoint": "/internal/menu/spotlight-now"
+      },
+      {
+        "label": "Refresh question pool",
+        "description": "Refetch TMDB metadata and rebuild the shared quiz pool now",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/pool-refresh-now"
       },
       {
         "label": "Reset all quiz data",

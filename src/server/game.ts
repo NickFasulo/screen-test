@@ -76,7 +76,7 @@ async function payloadFor(data: PostData): Promise<QuizPayload | null> {
 
 export type Result = { status: string; detail?: string }
 
-// `force` is for manual menu/external triggers: the scheduler dedups once per
+// `force` is for manual menu triggers: the scheduler dedups once per
 // day, but a mod explicitly re-running the action wants another post.
 export async function createQuizPost(force = false): Promise<Result> {
   const date = todayUtc()
