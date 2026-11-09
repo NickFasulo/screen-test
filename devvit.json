@@ -83,7 +83,7 @@
       },
       "daily-quiz": {
         "endpoint": "/internal/scheduler/daily-quiz",
-        "cron": "0 16 * * *"
+        "cron": "0 16 * * 2,4,6"
       },
       "weekly-spotlight": {
         "endpoint": "/internal/scheduler/weekly-spotlight",
